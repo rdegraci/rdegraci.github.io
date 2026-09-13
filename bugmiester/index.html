@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bugmiester — Rodney Degracia</title>
+  <meta name="description" content="Case study: Bugmiester — a localhost trainer for Swift bug-spotting. Python · FastAPI · free-text scoring.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a2332;
+      --muted: #5a6577;
+      --surface: #f7f4ef;
+      --accent: #0d6e6e;
+      --accent-hover: #0a5555;
+      --line: rgba(26, 35, 50, 0.12);
+    }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(13, 110, 110, 0.12), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 0%, rgba(26, 35, 50, 0.06), transparent 50%),
+        linear-gradient(180deg, #fbfaf7 0%, var(--surface) 45%, #efebe3 100%);
+      min-height: 100vh;
+    }
+
+    .brand-name,
+    h1, h2, h3 {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+
+    .navbar {
+      background: rgba(251, 250, 247, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .navbar-brand {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 1.35rem;
+      color: var(--ink) !important;
+    }
+
+    .nav-link-custom {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .nav-link-custom:hover,
+    .nav-link-custom.active {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 6rem 0 4rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 3.75rem);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .hero .lede {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      max-width: 48rem;
+    }
+
+    .hero .meta {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 48rem;
+    }
+
+    .hero .meta a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .hero .meta a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-accent {
+      --bs-btn-color: #fff;
+      --bs-btn-bg: var(--accent);
+      --bs-btn-border-color: var(--accent);
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: var(--accent-hover);
+      --bs-btn-hover-border-color: var(--accent-hover);
+      --bs-btn-active-color: #fff;
+      --bs-btn-active-bg: var(--accent-hover);
+      --bs-btn-active-border-color: var(--accent-hover);
+      padding: 0.65rem 1.35rem;
+      font-weight: 500;
+    }
+
+    .section {
+      padding: 4.5rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section h2 {
+      font-size: clamp(1.85rem, 4vw, 2.5rem);
+      margin-bottom: 1.5rem;
+    }
+
+    .section h3 {
+      font-size: clamp(1.35rem, 3vw, 1.65rem);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .section h3:first-of-type {
+      margin-top: 0;
+    }
+
+    .section p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 48rem;
+    }
+
+    .section p strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .section a:not(.btn) {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .section a:not(.btn):hover {
+      text-decoration: underline;
+    }
+
+    .section ul {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 48rem;
+      padding-left: 1.25rem;
+    }
+
+    .section ul li {
+      margin-bottom: 0.5rem;
+    }
+
+    code {
+      color: var(--ink);
+      background: rgba(26, 35, 50, 0.06);
+      padding: 0.1em 0.35em;
+      font-size: 0.92em;
+    }
+
+    .proof-figure {
+      max-width: 48rem;
+      margin: 0 0 2rem;
+    }
+
+    .proof-figure img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--line);
+      background: #1a2332;
+    }
+
+    .proof-figure figcaption {
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hero h1,
+      .hero .lede,
+      .hero .meta,
+      .hero .cta-row {
+        animation: rise 0.7s ease both;
+      }
+
+      .hero .lede { animation-delay: 0.08s; }
+      .hero .meta { animation-delay: 0.16s; }
+      .hero .cta-row { animation-delay: 0.24s; }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar sticky-top">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <a class="navbar-brand" href="/">rodneydegracia.com</a>
+      <div class="d-flex gap-3">
+        <a class="nav-link-custom" href="/#about">About</a>
+        <a class="nav-link-custom active" href="/#projects">Projects</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Bugmiester</h1>
+        <p class="lede">A localhost trainer for Swift bug-spotting.</p>
+        <p class="meta">
+          Python · FastAPI · free-text scoring ·
+          <a href="https://github.com/rdegraci/bugmiester" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+        </p>
+        <div class="cta-row d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/bugmiester" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="#proof">See the proof</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem" class="section">
+      <div class="container">
+        <h2>The problem</h2>
+        <p>
+          Interview and practice tools either give multiple-choice quizzes or
+          dump you into a live LLM chat. Neither trains the skill I actually
+          need: reading a short Swift snippet, naming the one real bug in free
+          text, and getting a fair score without shipping API keys to a browser
+          or a hosted service.
+        </p>
+      </div>
+    </section>
+
+    <section id="why-built" class="section">
+      <div class="container">
+        <h2>Why I built it</h2>
+        <p>
+          I write Swift with AI now. That is useful, and it can dull the muscle
+          of spotting bugs by eye. I built Bugmiester to keep that skill sharp:
+          a local trainer where I still have to read the code and name the bug,
+          while the model only writes the snippets and helps score.
+        </p>
+      </div>
+    </section>
+
+    <section id="built" class="section">
+      <div class="container">
+        <h2>What I built</h2>
+        <p>
+          I built a FastAPI app that runs on <code>127.0.0.1:8765</code>. Each
+          round delivers 10 short snippets with exactly one bug each. You type
+          what the bug is. Hybrid scoring awards up to 100 points. Keys and
+          config live under <code>~/Library/Application Support/Bugmiester/</code>.
+          The UI is static HTML, JavaScript, and Bootstrap. An ops dashboard
+          sits at <code>/ops</code>. Swift is the default language pack;
+          JavaScript, Python, Rust, and C++ are also registered.
+        </p>
+      </div>
+    </section>
+
+    <section id="decisions" class="section">
+      <div class="container">
+        <h2>Three decisions</h2>
+
+        <h3>1. Trust boundary is the product.</h3>
+        <p>
+          Secrets stay in Application Support <code>.env</code>. The browser
+          never sees keys. The answer key is withheld on <code>next-bug</code>
+          and revealed only on submit, or after recovery. The server binds to
+          localhost. That is a product, not a chat wrapper with a skin.
+        </p>
+
+        <h3>2. Scoring is designed for fairness, not for the LLM.</h3>
+        <p>
+          Keywords run first (strong / weak / miss). The LLM judge runs only on
+          a miss. Give-up phrases score zero without a judge call. On a
+          partial, a recovery quiz offers shuffled choices without leaking the
+          expected summary while the quiz is open. Offline golden eval and a
+          documented acceptance suite keep scoring changes honest.
+        </p>
+
+        <h3>3. Curriculum is a system, not a prompt.</h3>
+        <p>
+          <code>senior_mix</code> ramps Simple → Common → Gnarly. Freshness
+          uses scenario seeds, an avoid-list, similarity reject, and canned
+          fallback when generation exhausts. Language packs keep the engine
+          language-agnostic. Adaptation watches the isolation cluster
+          (MainActor, sendable, concurrency): if Common-band misses pile up,
+          Gnarly is delayed and Common is reinforced first. Strong players see
+          no change.
+        </p>
+      </div>
+    </section>
+
+    <section id="proof" class="section">
+      <div class="container">
+        <h2>Proof</h2>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/bugmiester-round-start.png"
+            alt="Bugmiester start of round: Bug 1 of 10, Simple difficulty, empty free-text field, localhost-only footer"
+            width="1600"
+            height="900"
+            loading="lazy">
+          <figcaption>
+            <strong>Bug 1 / 10 · Simple</strong> — free-text empty, difficulty
+            ramp visible, footer: localhost only · API keys stay on this
+            machine.
+          </figcaption>
+        </figure>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/bugmiester-solution-eval.png"
+            alt="Bugmiester solution and eval: free-text answer about try? on payload.write, Yes result, score 10 of 100"
+            width="1600"
+            height="900"
+            loading="lazy">
+          <figcaption>
+            <strong>After submit</strong> — free-text:
+            <code>payload.write has an optional try so the throw could be swallowed.</code>
+            Feedback: Yes. Expected: file write error discarded with
+            <code>try?</code>. Score <strong>10 / 100</strong>.
+          </figcaption>
+        </figure>
+
+        <p>
+          From the public repo and <code>docs/ACCEPTANCE.md</code>:
+        </p>
+        <ul>
+          <li>
+            Mock full 10-bug round completes on localhost
+            (<code>round_possible=100</code>, unique snippets)
+          </li>
+          <li>
+            No answer key on <code>next-bug</code>; no API key material in
+            <code>web/</code>
+          </li>
+          <li>
+            Golden eval: 15 cases, 30 good / 30 bad checks pass offline
+          </li>
+          <li>
+            Hybrid scoring, recovery quiz, freshness fallback, and ops analyze
+            are covered by the acceptance checklist
+          </li>
+        </ul>
+        <p>
+          <a href="https://github.com/rdegraci/bugmiester" target="_blank" rel="noopener noreferrer">github.com/rdegraci/bugmiester</a>
+        </p>
+      </div>
+    </section>
+
+    <section id="why" class="section">
+      <div class="container">
+        <h2>Why I built it this way</h2>
+        <p>
+          I wanted a local training product with the same standards I use in
+          iOS work: clear trust boundaries, fair free-text scoring, and a
+          curriculum that adapts without becoming a black-box chatbot — so
+          AI-assisted writing does not replace the ability to debug by reading.
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/bugmiester" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="/">Back home</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container d-flex flex-column flex-md-row gap-2 gap-md-4 justify-content-between">
+      <span>Rodney Degracia, Orlando, FL, USA</span>
+      <span>
+        <a href="tel:5714829809">571-482-9809</a>
+        ·
+        <a href="mailto:rdegraci@gmail.com">rdegraci@gmail.com</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+</body>
+</html>
