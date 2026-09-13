@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>LoreBuilder CLI — Rodney Degracia</title>
+  <meta name="description" content="Case study: LoreBuilder CLI — a persistent world you can talk to. Python CLI with RAG, Chroma, and SQLite sessions.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a2332;
+      --muted: #5a6577;
+      --surface: #f7f4ef;
+      --accent: #0d6e6e;
+      --accent-hover: #0a5555;
+      --line: rgba(26, 35, 50, 0.12);
+    }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(13, 110, 110, 0.12), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 0%, rgba(26, 35, 50, 0.06), transparent 50%),
+        linear-gradient(180deg, #fbfaf7 0%, var(--surface) 45%, #efebe3 100%);
+      min-height: 100vh;
+    }
+
+    .brand-name,
+    h1, h2, h3 {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+    }
+
+    .navbar {
+      background: rgba(251, 250, 247, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .navbar-brand {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 1.35rem;
+      color: var(--ink) !important;
+    }
+
+    .nav-link-custom {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .nav-link-custom:hover,
+    .nav-link-custom.active {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 6rem 0 4rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 3.75rem);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .hero .lede {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      max-width: 48rem;
+    }
+
+    .hero .meta {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 48rem;
+    }
+
+    .hero .meta a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .hero .meta a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-accent {
+      --bs-btn-color: #fff;
+      --bs-btn-bg: var(--accent);
+      --bs-btn-border-color: var(--accent);
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: var(--accent-hover);
+      --bs-btn-hover-border-color: var(--accent-hover);
+      --bs-btn-active-color: #fff;
+      --bs-btn-active-bg: var(--accent-hover);
+      --bs-btn-active-border-color: var(--accent-hover);
+      padding: 0.65rem 1.35rem;
+      font-weight: 500;
+    }
+
+    .section {
+      padding: 4.5rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section h2 {
+      font-size: clamp(1.85rem, 4vw, 2.5rem);
+      margin-bottom: 1.5rem;
+    }
+
+    .section h3 {
+      font-size: clamp(1.35rem, 3vw, 1.65rem);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .section h3:first-of-type {
+      margin-top: 0;
+    }
+
+    .section p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 48rem;
+    }
+
+    .section p strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .section a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .section a:hover {
+      text-decoration: underline;
+    }
+
+    code {
+      color: var(--ink);
+      background: rgba(26, 35, 50, 0.06);
+      padding: 0.1em 0.35em;
+      font-size: 0.92em;
+    }
+
+    .demo-video {
+      width: 100%;
+      max-width: 48rem;
+      border: 1px solid var(--line);
+      background: #1a2332;
+      display: block;
+      margin-bottom: 1.5rem;
+    }
+
+    .transcript {
+      max-width: 48rem;
+      padding: 1.25rem 1.35rem;
+      background: rgba(26, 35, 50, 0.04);
+      border: 1px solid var(--line);
+      font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+      font-size: 0.85rem;
+      line-height: 1.65;
+      color: var(--ink);
+      white-space: pre-wrap;
+      overflow-x: auto;
+      margin-bottom: 1.5rem;
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hero h1,
+      .hero .lede,
+      .hero .meta,
+      .hero .cta-row {
+        animation: rise 0.7s ease both;
+      }
+
+      .hero .lede { animation-delay: 0.08s; }
+      .hero .meta { animation-delay: 0.16s; }
+      .hero .cta-row { animation-delay: 0.24s; }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar sticky-top">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <a class="navbar-brand" href="/">rodneydegracia.com</a>
+      <div class="d-flex gap-3">
+        <a class="nav-link-custom" href="/#about">About</a>
+        <a class="nav-link-custom active" href="/#projects">Projects</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>LoreBuilder CLI</h1>
+        <p class="lede">A persistent world you can talk to.</p>
+        <p class="meta">
+          Python CLI · RAG + Chroma · SQLite sessions ·
+          <a href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+        </p>
+        <div class="cta-row d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="#proof">Watch the demo</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem" class="section">
+      <div class="container">
+        <h2>The problem</h2>
+        <p>
+          World-building tools dump text. They do not keep a queryable world, or
+          let you talk to the people in it. I needed lore that is stored,
+          retrieved, and used in conversation: locally, replayably, without a
+          web stack.
+        </p>
+      </div>
+    </section>
+
+    <section id="built" class="section">
+      <div class="container">
+        <h2>What I built</h2>
+        <p>
+          I built LoreBuilder as a Python CLI that treats lore as a small
+          product. You add a fact, it is embedded and searchable. Character
+          names are pulled from the text. Then you talk to one of them, and the
+          reply is grounded in the world you just wrote.
+        </p>
+        <p>
+          Launch is <code>python app.py</code>. Work happens at a
+          <code>&gt;&gt;</code> prompt.
+        </p>
+      </div>
+    </section>
+
+    <section id="decisions" class="section">
+      <div class="container">
+        <h2>Three decisions</h2>
+
+        <h3>1. Split the world from the conversation.</h3>
+        <p>
+          Lore lives in Chroma (semantic). Chat lives in SQLite (per-character
+          sessions). Adding lore is a write. Generating lore is a draft;
+          storing it is an explicit commit. That is a product, not an LLM
+          wrapper.
+        </p>
+
+        <h3>2. Characters come from the text, not a roster.</h3>
+        <p>
+          On the tape, <code>add_lore</code> introduces Captain Voss.
+          <code>list_characters</code> then shows <code>Voss</code> and
+          <code>Mary</code>: names extracted from stored lore, including entries
+          that were already in the world (Mary, Ardelune, the council of
+          scholars). The cast stays in sync with the writing.
+        </p>
+
+        <h3>3. A command registry, not a growing REPL.</h3>
+        <p>
+          Commands are listed in categories (Lore / Characters / System). Help
+          is generated from the registry. I kept one handler per file and left
+          deprecated modules unregistered. The demo on tape is slightly ahead
+          of the public repo (<code>chat_to</code> / <code>chat_with</code> /
+          <code>reset_chat</code> vs the published <code>chat_as</code>).
+        </p>
+      </div>
+    </section>
+
+    <section id="proof" class="section">
+      <div class="container">
+        <h2>Proof</h2>
+        <p>
+          From the tape — add lore, query it, list characters extracted from the
+          world, then chat with Voss grounded in what you just wrote.
+        </p>
+
+        <video class="demo-video" controls playsinline preload="metadata" src="../assets/lorebuilder-demo.mp4">
+          Your browser does not support the video tag.
+          <a href="../assets/lorebuilder-demo.mp4">Download the demo</a>
+        </video>
+
+        <pre class="transcript" aria-label="Demo transcript excerpt">>> add_lore Captain Voss keeps a brass compass that always points to the last place he broke a promise.
+Lore added with id 172161.
+
+>> query_lore compass
+Relevant Lore Entries:
+Entry 1: Captain Voss keeps a brass compass that always points to the last place he broke a promise.
+Entry 2: Mary is on the council of scholars.
+Entry 3: The city of Ardelune is ruled by a council of scholars.
+
+>> list_characters
+Characters mentioned in world lore (2):
+- Mary
+- Voss
+
+>> chat_to Voss Why does the compass never point north?
+Voss>> Ah, the compass—an artifact of my own making, but with a burden far heavier than mere metal and glass. It never points north because it seeks to remind me of the weight of my oaths.</pre>
+
+        <p>
+          The rest of the reply stays in character and pulls Ardelune and the
+          council of scholars into the same answer. That is retrieval, not a
+          canned line.
+        </p>
+        <p>
+          The clip ends at a new <code>&gt;&gt;</code> prompt; the last frames
+          also show <code>exit</code> returning to the shell.
+        </p>
+      </div>
+    </section>
+
+    <section id="why" class="section">
+      <div class="container">
+        <h2>Why I built it this way</h2>
+        <p>
+          I wanted a small Python system with the same standards I use in iOS
+          work: clear module boundaries, persistence, and a CLI a technical
+          person can judge in under two minutes.
+        </p>
+        <p>
+          <a href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">github.com/rdegraci/lorebuilder-cli</a>
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="/">Back home</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container d-flex flex-column flex-md-row gap-2 gap-md-4 justify-content-between">
+      <span>Rodney Degracia, Orlando, FL, USA</span>
+      <span>
+        <a href="tel:5714829809">571-482-9809</a>
+        ·
+        <a href="mailto:rdegraci@gmail.com">rdegraci@gmail.com</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+</body>
+</html>
