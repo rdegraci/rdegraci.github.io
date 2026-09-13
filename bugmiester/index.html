@@ -345,8 +345,9 @@
             height="900"
             loading="lazy">
           <figcaption>
-            <strong>Start of round</strong> — Bug 1/10, Simple. Empty free-text
-            field. Footer: localhost only, API keys stay on this machine.
+            <strong>Bug 1 / 10 · Simple</strong> — free-text empty, difficulty
+            ramp visible, footer: localhost only · API keys stay on this
+            machine.
           </figcaption>
         </figure>
 
@@ -358,11 +359,10 @@
             height="900"
             loading="lazy">
           <figcaption>
-            <strong>Solution and eval</strong> — Free-text answer:
-            <code>try?</code> on <code>payload.write</code> can swallow the
-            error. Bugmiester: Yes. Expected: the write error is discarded, so
-            <code>store</code> can return a URL for a file that was never
-            written. Score 10/100.
+            <strong>After submit</strong> — free-text:
+            <code>payload.write has an optional try so the throw could be swallowed.</code>
+            Feedback: Yes. Expected: file write error discarded with
+            <code>try?</code>. Score <strong>10 / 100</strong>.
           </figcaption>
         </figure>
 
