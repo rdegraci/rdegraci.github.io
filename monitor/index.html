@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Monitor — Rodney Degracia</title>
+  <meta name="description" content="Case study: Monitor — a personal AI coding agent CLI. Python · REPL + tools · task planning.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a2332;
+      --muted: #5a6577;
+      --surface: #f7f4ef;
+      --accent: #0d6e6e;
+      --accent-hover: #0a5555;
+      --line: rgba(26, 35, 50, 0.12);
+    }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(13, 110, 110, 0.12), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 0%, rgba(26, 35, 50, 0.06), transparent 50%),
+        linear-gradient(180deg, #fbfaf7 0%, var(--surface) 45%, #efebe3 100%);
+      min-height: 100vh;
+    }
+
+    .brand-name,
+    h1, h2, h3 {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .navbar {
+      background: rgba(251, 250, 247, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .navbar-brand {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 1.35rem;
+      color: var(--ink) !important;
+    }
+
+    .nav-link-custom {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .nav-link-custom:hover,
+    .nav-link-custom.active {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 6rem 0 4rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 3.75rem);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .hero .lede {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      max-width: 64rem;
+    }
+
+    .hero .meta {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 64rem;
+    }
+
+    .hero .meta a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .hero .meta a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-accent {
+      --bs-btn-color: #fff;
+      --bs-btn-bg: var(--accent);
+      --bs-btn-border-color: var(--accent);
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: var(--accent-hover);
+      --bs-btn-hover-border-color: var(--accent-hover);
+      --bs-btn-active-color: #fff;
+      --bs-btn-active-bg: var(--accent-hover);
+      --bs-btn-active-border-color: var(--accent-hover);
+      padding: 0.65rem 1.35rem;
+      font-weight: 500;
+    }
+
+    .section {
+      padding: 4.5rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section h2 {
+      font-size: clamp(1.85rem, 4vw, 2.5rem);
+      margin-bottom: 1.5rem;
+    }
+
+    .section h3 {
+      font-size: clamp(1.35rem, 3vw, 1.65rem);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .section h3:first-of-type {
+      margin-top: 0;
+    }
+
+    .section p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 64rem;
+    }
+
+    .section p strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .section a:not(.btn) {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .section a:not(.btn):hover {
+      text-decoration: underline;
+    }
+
+    .section ul {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 64rem;
+      padding-left: 1.25rem;
+    }
+
+    .section ul li {
+      margin-bottom: 0.5rem;
+    }
+
+    code {
+      color: var(--ink);
+      background: rgba(26, 35, 50, 0.06);
+      padding: 0.1em 0.35em;
+      font-size: 0.92em;
+    }
+
+    .proof-figure {
+      max-width: 64rem;
+      margin: 0 0 2rem;
+    }
+
+    .proof-figure img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--line);
+      background: #1a2332;
+    }
+
+    .proof-figure figcaption {
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hero h1,
+      .hero .lede,
+      .hero .meta,
+      .hero .cta-row {
+        animation: rise 0.7s ease both;
+      }
+
+      .hero .lede { animation-delay: 0.08s; }
+      .hero .meta { animation-delay: 0.16s; }
+      .hero .cta-row { animation-delay: 0.24s; }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar sticky-top">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <a class="navbar-brand" href="/">rodneydegracia.com</a>
+      <div class="d-flex gap-3">
+        <a class="nav-link-custom" href="/#about">About</a>
+        <a class="nav-link-custom active" href="/#projects">Projects</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Monitor</h1>
+        <p class="lede">A personal AI coding agent CLI.</p>
+        <p class="meta">
+          Python · REPL + tools · task planning ·
+          <a href="https://github.com/rdegraci/monitor" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+        </p>
+        <div class="cta-row d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/monitor" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="#proof">See the proof</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem" class="section">
+      <div class="container">
+        <h2>The problem</h2>
+        <p>
+          Day-to-day coding with models usually means bouncing between a chat UI,
+          a terminal, and ad-hoc scripts. I needed one harness for repository work:
+          shell, structured tools, and planning — tuned to how I actually work, not
+          another general-purpose agent product.
+        </p>
+      </div>
+    </section>
+
+    <section id="why-built" class="section">
+      <div class="container">
+        <h2>Why I built it</h2>
+        <p>
+          I wrote Monitor as a personal AI coding agent CLI for my own daily work.
+          It is customized for my workflow, not a general-purpose product.
+        </p>
+      </div>
+    </section>
+
+    <section id="built" class="section">
+      <div class="container">
+        <h2>What I built</h2>
+        <p>
+          I built a production entry point — <code>monitor</code> /
+          <code>python -m monitor</code> — with an interactive REPL, built-in
+          commands, LLM-callable tools (git, search, edit, tests, typecheck,
+          memory, todos), macros, and task planning. An optional local
+          OpenAI-style HTTP server is available. Config lives under the platform
+          user config directory. Project instructions resolve through
+          <code>AGENTS.md</code> or <code>MONITOR.md</code>. Optional extras
+          (voice, TTS, Chroma, and others) fail at feature use, not at REPL startup.
+        </p>
+        <p>
+          An alternate OOP stack (<code>monitor-oop</code>) and a full-screen
+          <code>--tui</code> mode exist for exploration. They are experimental.
+          Day-to-day work stays on the production path.
+        </p>
+      </div>
+    </section>
+
+    <section id="decisions" class="section">
+      <div class="container">
+        <h2>Three decisions</h2>
+
+        <h3>1. Production vs experiment is explicit.</h3>
+        <p>
+          One recommended path: <code>src/monitor/</code>.
+          <code>monitor-oop</code> is labeled experimental and is not the daily
+          entry. <code>--tui</code> is experimental inside the same entry. That
+          is how I evolve an architecture without lying to myself — or to the README.
+        </p>
+
+        <h3>2. Deterministic edits before NL fallback.</h3>
+        <p>
+          Preferred order: create → str_replace → insert_at_line → bulk_replace →
+          <code>modify_source_code</code> last. The model gets mechanical tools
+          first. Natural-language editing is the escape hatch, not the default.
+        </p>
+
+        <h3>3. Tool surface and safety are designed, not dumped.</h3>
+        <p>
+          Tool profiles: <code>minimal</code>, <code>coding</code> (default),
+          <code>review</code>, <code>full</code>. Runtime rails include nested
+          tool depth caps, repeated-call loop detection, per-path read budgets,
+          and sub-agent write scoping. <code>--check-config</code> reports
+          readiness without printing secrets. The local server defaults to
+          <code>127.0.0.1</code>.
+        </p>
+      </div>
+    </section>
+
+    <section id="proof" class="section">
+      <div class="container">
+        <h2>Proof</h2>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/monitor-runtime.png"
+            alt="Monitor runtime architecture: Entry through Config and Modes into Core, then LibTools and External providers"
+            width="1904"
+            height="1035"
+            loading="lazy">
+          <figcaption>
+            <strong>Runtime map</strong> — How Monitor boots and routes work:
+            entry (<code>monitor</code> / <code>python -m monitor</code>) through
+            config and modes (REPL, script, prompt, local server, experimental TUI),
+            into core command processing, LLM and tooling, then out to LibTools and
+            external providers. Same shape as <code>docs/ARCHITECTURE.md</code>.
+          </figcaption>
+        </figure>
+
+        <p>
+          From the public repo and <code>docs/ARCHITECTURE.md</code>:
+        </p>
+        <ul>
+          <li>Production vs experimental entry points documented and separated</li>
+          <li>Edit tool order and tool profiles spelled out in architecture</li>
+          <li>Runtime safety rails (depth, loop detection, write scoping) documented</li>
+          <li><code>pytest</code> suite and <code>--check-config</code> for secret-safe readiness</li>
+        </ul>
+        <p>
+          <a href="https://github.com/rdegraci/monitor" target="_blank" rel="noopener noreferrer">github.com/rdegraci/monitor</a>
+        </p>
+      </div>
+    </section>
+
+    <section id="why" class="section">
+      <div class="container">
+        <h2>Why I built it this way</h2>
+        <p>
+          I wanted a harness with the same standards I use in iOS work: clear
+          production boundaries, deterministic tools over chatty edits, and safety
+          rails that treat the agent as a system — not a black-box chat window
+          bolted onto a repo.
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/monitor" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="/">Back home</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container d-flex flex-column flex-md-row gap-2 gap-md-4 justify-content-between">
+      <span>Rodney Degracia, Orlando, FL, USA</span>
+      <span>
+        <a href="mailto:rdegraci@gmail.com">rdegraci@gmail.com</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+</body>
+</html>
