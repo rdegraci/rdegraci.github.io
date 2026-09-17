@@ -181,6 +181,28 @@
       margin-bottom: 1.5rem;
     }
 
+
+    .proof-figure {
+      max-width: 64rem;
+      margin: 0 0 2rem;
+    }
+
+    .proof-figure img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--line);
+      background: #1a2332;
+    }
+
+    .proof-figure figcaption {
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
     footer {
       border-top: 1px solid var(--line);
       padding: 2rem 0;
@@ -348,6 +370,22 @@ Voss>> Ah, the compass—an artifact of my own making, but with a burden far hea
           The clip ends at a new <code>&gt;&gt;</code> prompt; the last frames
           also show <code>exit</code> returning to the shell.
         </p>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/lorebuilder-cli-runtime.png"
+            alt="LoreBuilder CLI runtime architecture: Entry through Config and CLI registry into Lore/Chat commands, Core RAG path, LiteLLM, and Storage"
+            width="6840"
+            height="3939"
+            loading="lazy">
+          <figcaption>
+            <strong>Runtime map</strong> — Entry (<code>python app.py</code> / bootstrap)
+            through Config and CLI command registry; Lore and Chat commands; Core
+            (LoreService RAG + LLM write path, NER, fuzzy aliases); LiteLLM; Storage
+            (ChromaDB lore collection, SentenceTransformer embeddings, SQLite chat history).
+          </figcaption>
+        </figure>
+
       </div>
     </section>
 
