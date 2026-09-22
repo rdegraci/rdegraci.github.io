@@ -249,8 +249,7 @@
         <h1>Desktopper</h1>
         <p class="lede">Ordinary language to a local schema-driven app.</p>
         <p class="meta">
-          Python · SQLite · Safari ·
-          <a href="https://github.com/rdegraci/desktopper" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+          Python · SQLite · Safari · <a href="https://github.com/rdegraci/desktopper" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
         </p>
         <div class="cta-row d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/desktopper" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -262,81 +261,67 @@
     <section id="problem" class="section">
       <div class="container">
         <h2>The problem</h2>
-        <p>
-          Small local apps usually go one of two ways. You hand-write the HTML,
-          JavaScript, and SQL yourself, or you let a model invent the whole stack.
-          I've done both. Neither ages well. I wanted to describe tables and screens
-          in plain language without giving the model the render path.
+<p>
+          Small local apps usually go one of two ways. You hand-write the HTML, JavaScript, and SQL yourself, or you let a model invent the whole stack. I have done both. Neither ages well. I wanted to describe tables and screens in plain language without giving the model the render path.
         </p>
       </div>
     </section>
-
     <section id="why-built" class="section">
       <div class="container">
         <h2>Why I built it</h2>
-        <p>
-          The main reason was selfish and practical: I wanted to spin up a dashboard
-          UI fast — with real CRUD on resources I'd actually use for work — without
-          hand-building every screen or letting a model invent the whole stack.
+<p>
+          Day to day, I wanted to spin up a work dashboard fast, with real CRUD on resources I would actually use, without hand-building every screen or handing the whole stack to a model.
         </p>
-        <p>
-          So in Ops I say what should change. The model comes back with an additive
-          schema diff — JSON, not a pile of markup. Python checks it and applies it
-          to SQLite. Safari then shows lists, forms, and layouts from that schema.
-          The model never writes HTML, JavaScript, or SQL.
+<p>
+          A local macOS app was enough for that. In Ops I say what should change. The model comes back with an additive schema diff in JSON, not a pile of markup. Python checks it and applies it to SQLite. Safari then shows lists, forms, and layouts from that schema. The model never writes HTML, JavaScript, or SQL.
         </p>
       </div>
     </section>
-
     <section id="built" class="section">
       <div class="container">
         <h2>What I built</h2>
-        <p>
-          Desktopper is a local macOS app. Ops is where you talk about the schema.
-          Home is the generated UI: lists, forms, related child lists, belongs-to
-          links, scopes, field groups, empty states, layouts. Flask serves a frozen
-          shell. Everything durable — data, secrets, knobs — sits under Application
-          Support. No Node, no npm.
+<p>
+          Desktopper is a local macOS app that treats the schema like the product. Ops is where you talk about the model. Home is the generated UI: lists, forms, related child lists, belongs-to links, scopes, field groups, empty states, and layouts.
         </p>
-        <p>
-          There's more once the schema is in place: Python hooks on create, update,
-          delete, or startup; reminders and notices; formulas and rules; auth with
-          column grants; CSV import profiles; peer sync with last-write-wins. The
-          process binds where you tell it and refuses <code>0.0.0.0</code>.
+<p>
+          Flask serves a frozen shell. Everything durable (data, secrets, knobs) sits under Application Support. There is no Node or npm in the stack.
+        </p>
+<p>
+          Once the schema is in place there is more: Python hooks on create, update, delete, or startup; reminders and notices; formulas and rules; auth with column grants; CSV import profiles; peer sync with last-write-wins. The process binds where you tell it and refuses <code>0.0.0.0</code>.
         </p>
       </div>
     </section>
-
     <section id="decisions" class="section">
       <div class="container">
         <h2>Three decisions</h2>
 
-        <h3>1. Diffs, not markup.</h3>
         <p>
-          The LLM proposes. The host applies. Persistence and the UI shell stay in
-          Python and static files. If that boundary slips, you're back to trusting
-          generated stacks.
+          These are the craft bets I would defend in a design review, each one about honesty, ownership, or maintainability.
+        </p>
+
+        <h3>1. Diffs, not markup.</h3>
+<p>
+          The LLM proposes. The host applies. Persistence and the UI shell stay in Python and static files. I was counting on that boundary holding when the model gets creative, because the failure I care about is trusting a generated stack I cannot audit. If the model writes HTML, JavaScript, or SQL, you are back to hoping the render path is honest.
         </p>
 
         <h3>2. Home is generated; Ops is separate.</h3>
-        <p>
-          Safari loads a frozen HTML/CSS/JS shell. Screens come from the schema.
-          Home has no chat box. You open Ops when you mean to change the model —
-          it doesn't redirect you there.
+<p>
+          Safari loads a frozen HTML/CSS/JS shell. Screens come from the schema. Home has no chat box. You open Ops when you mean to change the model; it does not redirect you there. I was counting on a clear mode switch so a work dashboard stays a dashboard. Mixing chat into the runtime UI would blur the line between using the app and rewriting it.
         </p>
 
         <h3>3. Secrets stay off the wire.</h3>
-        <p>
-          Keys live in Application Support <code>.env</code>, never in YAML. Knobs
-          live in <code>conf.yaml</code>. The server won't serve either over HTTP,
-          and bind stays local.
+<p>
+          Keys live in Application Support <code>.env</code>, never in YAML. Knobs live in <code>conf.yaml</code>. The server will not serve either over HTTP, and bind stays local. I was counting on local ownership for something I would actually use day to day. If secrets ride the same path as screens, the app stops being something I trust on a machine I care about.
         </p>
+
       </div>
     </section>
-
     <section id="proof" class="section">
       <div class="container">
         <h2>Proof</h2>
+        <p>
+          You can follow the same path the runtime takes: Ops intent becomes a schema diff, Python applies it, and Home renders from what landed in SQLite.
+        </p>
 
         <figure class="proof-figure">
           <img
@@ -346,32 +331,33 @@
             height="5664"
             loading="lazy">
           <figcaption>
-            <strong>Runtime map</strong> — Ops intent goes to the LLM for an additive
+            <strong>Runtime map.</strong> Ops intent goes to the LLM for an additive
             schema diff; Python validates and applies it to SQLite under Application
             Support. Home loads a frozen Safari shell and renders lists, forms, and
-            layouts from that schema — the model never writes HTML, JavaScript, or SQL.
+            layouts from that schema. The model never writes HTML, JavaScript, or SQL.
           </figcaption>
         </figure>
 
         <p>
-          From the public repo: the README spells out that the model doesn't write
-          HTML, JavaScript, or SQL and that there's no Node/npm; Ops vs Home; appdir
-          bootstrap; the <code>0.0.0.0</code> refusal; unittests under <code>tests/</code>.
-        </p>
-        <p>
-          <a href="https://github.com/rdegraci/desktopper" target="_blank" rel="noopener noreferrer">github.com/rdegraci/desktopper</a>
+          From the public repo, the README spells out that the model does not write HTML, JavaScript, or SQL and that there is no Node/npm; Ops versus Home; appdir bootstrap; the <code>0.0.0.0</code> refusal; and unittests under <code>tests/</code>.
         </p>
       </div>
     </section>
-
     <section id="why" class="section">
       <div class="container">
         <h2>Why I built it this way</h2>
+<p>
+          These boundaries are the same ones I hold elsewhere: clear ownership, real persistence, and something a technical peer can judge quickly.
+        </p>
+<p>
+          I needed work dashboards with CRUD, not another generated demo. If ordinary language is going to change that app, it should change the schema and stop there. Python owns validation and storage. The shell stays frozen. That is the stack I am willing to trust for something I would actually use day to day.
+        </p>
+      </div>
+    </section>
+    <section id="links" class="section">
+      <div class="container">
         <p>
-          I needed work dashboards with CRUD, not another generated demo app. If
-          ordinary language is going to change that app, it should change the schema —
-          and stop there. Python owns validation and storage. The shell stays frozen.
-          That's the stack I'm willing to trust for something I'd actually use day to day.
+          <a href="https://github.com/rdegraci/desktopper" target="_blank" rel="noopener noreferrer">github.com/rdegraci/desktopper</a>
         </p>
         <div class="d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/desktopper" target="_blank" rel="noopener noreferrer">View on GitHub</a>
