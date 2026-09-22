@@ -249,8 +249,7 @@
         <h1>Bugmiester</h1>
         <p class="lede">A localhost trainer for Swift bug-spotting.</p>
         <p class="meta">
-          Python · FastAPI · free-text scoring ·
-          <a href="https://github.com/rdegraci/bugmiester" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+          Python · FastAPI · free-text scoring · <a href="https://github.com/rdegraci/bugmiester" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
         </p>
         <div class="cta-row d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/bugmiester" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -262,80 +261,67 @@
     <section id="problem" class="section">
       <div class="container">
         <h2>The problem</h2>
-        <p>
-          Interview and practice tools either give multiple-choice quizzes or
-          dump you into a live LLM chat. Neither trains the skill I actually
-          need: reading a short Swift snippet, naming the one real bug in free
-          text, and getting a fair score without shipping API keys to a browser
-          or a hosted service.
+<p>
+          Interview and practice tools usually go one of two ways: multiple-choice quizzes, or a live LLM chat. Neither trains the skill I actually need.
+        </p>
+<p>
+          I needed to read a short Swift snippet, name the one real bug in free text, and get a fair score without shipping API keys to a browser or a hosted service.
         </p>
       </div>
     </section>
-
     <section id="why-built" class="section">
       <div class="container">
         <h2>Why I built it</h2>
-        <p>
-          I write Swift with AI now. That is useful, and it can dull the muscle
-          of spotting bugs by eye. I built Bugmiester to keep that skill sharp:
-          a local trainer where I still have to read the code and name the bug,
-          while the model only writes the snippets and helps score.
+<p>
+          Day to day, I write Swift with AI now, and that is useful, but it can dull the habit of spotting bugs by eye.
+        </p>
+<p>
+          Bugmiester is how I keep that skill sharp: a local trainer where I still have to read the code and name the bug. The model writes the snippets and helps score. It does not do the reading for me.
         </p>
       </div>
     </section>
-
     <section id="built" class="section">
       <div class="container">
         <h2>What I built</h2>
-        <p>
-          I built a FastAPI app that runs on <code>127.0.0.1:8765</code>. Each
-          round delivers 10 short snippets with exactly one bug each. You type
-          what the bug is. Hybrid scoring awards up to 100 points. Keys and
-          config live under <code>~/Library/Application Support/Bugmiester/</code>.
-          The UI is static HTML, JavaScript, and Bootstrap. An ops dashboard
-          sits at <code>/ops</code>. Swift is the default language pack;
-          JavaScript, Python, Rust, and C++ are also registered.
+<p>
+          Bugmiester is a FastAPI app on <code>127.0.0.1:8765</code> where each round delivers 10 short snippets with exactly one bug each, you type what the bug is, and hybrid scoring awards up to 100 points. Keys and config live under <code>~/Library/Application Support/Bugmiester/</code>, the UI is static HTML, JavaScript, and Bootstrap, and an ops dashboard sits at <code>/ops</code>. Swift is the default language pack; JavaScript, Python, Rust, and C++ are also registered.
+        </p>
+<p>
+          You launch with <code>python -m bugmiester</code>.
         </p>
       </div>
     </section>
-
     <section id="decisions" class="section">
       <div class="container">
         <h2>Three decisions</h2>
 
-        <h3>1. Trust boundary is the product.</h3>
         <p>
-          Secrets stay in Application Support <code>.env</code>. The browser
-          never sees keys. The answer key is withheld on <code>next-bug</code>
-          and revealed only on submit, or after recovery. The server binds to
-          localhost. That is a product, not a chat wrapper with a skin.
+          These are the craft bets I would defend in a design review, each one about honesty, ownership, or maintainability.
         </p>
 
-        <h3>2. Scoring is designed for fairness, not for the LLM.</h3>
+        <h3>1. The trust boundary is the product.</h3>
         <p>
-          Keywords run first (strong / weak / miss). The LLM judge runs only on
-          a miss. Give-up phrases score zero without a judge call. On a
-          partial, a recovery quiz offers shuffled choices without leaking the
-          expected summary while the quiz is open. Offline golden eval and a
-          documented acceptance suite keep scoring changes honest.
+          Secrets stay in Application Support <code>.env</code>, the browser never sees keys, and the answer key is withheld on <code>next-bug</code> and revealed only on submit, or after recovery, while the server binds to localhost. That combination is the product, not a chat wrapper with a skin. I was counting on practice staying honest only if I cannot peek at the expected answer or grab a key from the page before I commit, and that binding to localhost with secrets in Application Support is enough trust for a machine I sit at. Pasting a key in the frontend or seeing expected text before I have typed mine is simply not available. The boundary is the reason the round is honest.
+        </p>
+
+        <h3>2. Scoring is built for fairness, not for the LLM.</h3>
+        <p>
+          Keywords run first (strong / weak / miss), and the LLM judge runs only on a miss. Give-up phrases score zero without a judge call. On a partial, a recovery quiz offers shuffled choices without leaking the expected summary while the quiz is open. A fixed offline eval suite and a documented acceptance checklist keep scoring changes honest. The hybrid path is there so I get a fair grade when my wording is close but not identical, without paying a judge call on every strong keyword hit, and without letting &quot;I give up&quot; farm a free model pass. I was counting on fair meaning close wording earns credit without matching the expected summary word for word, give-up phrases never buying a free model pass, and fairness showing up in a fixed offline suite rather than my mood that day. Keyword-first stays the happy path and the judge stays a backstop. The offline acceptance suite is how I stop myself from reshaping scoring on gut feel alone, because fairness has to be measurable or it is just a preference.
         </p>
 
         <h3>3. Curriculum is a system, not a prompt.</h3>
         <p>
-          <code>senior_mix</code> ramps Simple → Common → Gnarly. Freshness
-          uses scenario seeds, an avoid-list, similarity reject, and canned
-          fallback when generation exhausts. Language packs keep the engine
-          language-agnostic. Adaptation watches the isolation cluster
-          (MainActor, sendable, concurrency): if Common-band misses pile up,
-          Gnarly is delayed and Common is reinforced first. Strong players see
-          no change.
+          <code>senior_mix</code> ramps Simple → Common → Gnarly. Freshness uses scenario seeds, an avoid-list, similarity reject, and canned fallback when generation exhausts. Language packs keep the engine language-agnostic. Adaptation watches the isolation cluster (MainActor, sendable, concurrency): if Common-band misses pile up, Gnarly is delayed and Common is reinforced first, while strong players see no change. Difficulty and variety come from rules I can inspect, not from hoping the model keeps it interesting, so the ramp actually teaches, repeats do not feel identical, and the engine is not hard-wired to Swift. I was counting on a ramp teaching only when the rules are inspectable, on struggling with concurrency reinforcing Common before Gnarly rather than punishing, and on strong play staying uninterrupted by adaptation meant for someone else. Adaptation only intervenes when the isolation cluster says it should.
         </p>
+
       </div>
     </section>
-
     <section id="proof" class="section">
       <div class="container">
         <h2>Proof</h2>
+        <p>
+          You can open a round on localhost and watch the score path yourself.
+        </p>
 
         <figure class="proof-figure">
           <img
@@ -345,9 +331,52 @@
             height="900"
             loading="lazy">
           <figcaption>
-            <strong>Bug 1 / 10 · Simple</strong> — free-text empty, difficulty
-            ramp visible, footer: localhost only · API keys stay on this
-            machine.
+            <strong>Bug 1 / 10 · Simple.</strong> The free-text field is empty, the difficulty ramp is visible, and the footer reads: localhost only · API keys stay on this machine.
+          </figcaption>
+        </figure>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/bugmiester-round-start.png"
+            alt="Bugmiester start of round: Bug 1 of 10, Simple difficulty, empty free-text field, localhost-only footer"
+            width="1600"
+            height="900"
+            loading="lazy">
+          <figcaption>
+            <strong>After submit.</strong> Free-text:
+            <code>payload.write has an optional try so the throw could be swallowed.</code>
+            Feedback: Yes. Expected: file write error discarded with
+            <code>try?</code>. Score <strong>10 / 100</strong>.
+          </figcaption>
+        </figure>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/bugmiester-solution-eval.png"
+            alt="Bugmiester solution and eval: free-text answer about try? on payload.write, Yes result, score 10 of 100"
+            width="1600"
+            height="900"
+            loading="lazy">
+          <figcaption>
+            <strong>After submit</strong> — free-text:
+            <code>payload.write has an optional try so the throw could be swallowed.</code>
+            Feedback: Yes. Expected: file write error discarded with
+            <code>try?</code>. Score <strong>10 / 100</strong>.
+          </figcaption>
+        </figure>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/bugmiester-round-start.png"
+            alt="Bugmiester start of round: Bug 1 of 10, Simple difficulty, empty free-text field, localhost-only footer"
+            width="1600"
+            height="900"
+            loading="lazy">
+          <figcaption>
+            <strong>Runtime map.</strong> Entry (<code>python -m bugmiester</code>)
+            into serve / analyze / eval; FastAPI HTTP and game + ops UI; RoundEngine
+            (mix, freshness, adaptation); ScorePath; LLM facade; OpsData; Config and
+            language packs.
           </figcaption>
         </figure>
 
@@ -386,36 +415,28 @@
           From the public repo and <code>docs/ACCEPTANCE.md</code>:
         </p>
         <ul>
-          <li>
-            Mock full 10-bug round completes on localhost
-            (<code>round_possible=100</code>, unique snippets)
-          </li>
-          <li>
-            No answer key on <code>next-bug</code>; no API key material in
-            <code>web/</code>
-          </li>
-          <li>
-            Golden eval: 15 cases, 30 good / 30 bad checks pass offline
-          </li>
-          <li>
-            Hybrid scoring, recovery quiz, freshness fallback, and ops analyze
-            are covered by the acceptance checklist
-          </li>
+          <li>Mock full 10-bug round completes on localhost (<code>round_possible=100</code>, unique snippets)</li>
+          <li>No answer key on <code>next-bug</code>; no API key material in <code>web/</code></li>
+          <li>Offline acceptance suite: 15 fixed eval cases, 30 good / 30 bad checks pass offline</li>
+          <li>Hybrid scoring, recovery quiz, freshness fallback, and ops analyze are covered by the acceptance checklist</li>
         </ul>
-        <p>
-          <a href="https://github.com/rdegraci/bugmiester" target="_blank" rel="noopener noreferrer">github.com/rdegraci/bugmiester</a>
-        </p>
       </div>
     </section>
-
     <section id="why" class="section">
       <div class="container">
         <h2>Why I built it this way</h2>
+<p>
+          These boundaries are the same ones I hold in iOS work: clear ownership, fair grading, and something a technical peer can judge quickly.
+        </p>
+<p>
+          I keep keys and answers server-side so the browser cannot spoil the round. I use hybrid scoring so free text stays fair without making every grade a model call. I build a curriculum with rules so difficulty adapts instead of hoping a prompt does. AI-assisted writing is useful; it should not replace the ability to debug by reading.
+        </p>
+      </div>
+    </section>
+    <section id="links" class="section">
+      <div class="container">
         <p>
-          I wanted a local training product with the same standards I use in
-          iOS work: clear trust boundaries, fair free-text scoring, and a
-          curriculum that adapts without becoming a black-box chatbot — so
-          AI-assisted writing does not replace the ability to debug by reading.
+          <a href="https://github.com/rdegraci/bugmiester" target="_blank" rel="noopener noreferrer">github.com/rdegraci/bugmiester</a>
         </p>
         <div class="d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/bugmiester" target="_blank" rel="noopener noreferrer">View on GitHub</a>
