@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Greenfield — Rodney Degracia</title>
+  <meta name="description" content="Case study: Greenfield — a spec-first harness for building a new app one verified unit at a time. Python CLI · OpenAI · stdlib HTTP or FastAPI scaffolds.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a2332;
+      --muted: #5a6577;
+      --surface: #f7f4ef;
+      --accent: #0d6e6e;
+      --accent-hover: #0a5555;
+      --line: rgba(26, 35, 50, 0.12);
+    }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(13, 110, 110, 0.12), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 0%, rgba(26, 35, 50, 0.06), transparent 50%),
+        linear-gradient(180deg, #fbfaf7 0%, var(--surface) 45%, #efebe3 100%);
+      min-height: 100vh;
+    }
+
+    .brand-name,
+    h1, h2, h3 {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .navbar {
+      background: rgba(251, 250, 247, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .navbar-brand {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 1.35rem;
+      color: var(--ink) !important;
+    }
+
+    .nav-link-custom {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .nav-link-custom:hover,
+    .nav-link-custom.active {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 6rem 0 4rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 3.75rem);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .hero .lede {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      max-width: 64rem;
+    }
+
+    .hero .meta {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 64rem;
+    }
+
+    .hero .meta a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .hero .meta a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-accent {
+      --bs-btn-color: #fff;
+      --bs-btn-bg: var(--accent);
+      --bs-btn-border-color: var(--accent);
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: var(--accent-hover);
+      --bs-btn-hover-border-color: var(--accent-hover);
+      --bs-btn-active-color: #fff;
+      --bs-btn-active-bg: var(--accent-hover);
+      --bs-btn-active-border-color: var(--accent-hover);
+      padding: 0.65rem 1.35rem;
+      font-weight: 500;
+    }
+
+    .section {
+      padding: 4.5rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section h2 {
+      font-size: clamp(1.85rem, 4vw, 2.5rem);
+      margin-bottom: 1.5rem;
+    }
+
+    .section h3 {
+      font-size: clamp(1.35rem, 3vw, 1.65rem);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .section h3:first-of-type {
+      margin-top: 0;
+    }
+
+    .section p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 64rem;
+    }
+
+    .section p strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .section a:not(.btn) {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .section a:not(.btn):hover {
+      text-decoration: underline;
+    }
+
+    .section ul {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 64rem;
+      padding-left: 1.25rem;
+    }
+
+    .section ul li {
+      margin-bottom: 0.5rem;
+    }
+
+    code {
+      color: var(--ink);
+      background: rgba(26, 35, 50, 0.06);
+      padding: 0.1em 0.35em;
+      font-size: 0.92em;
+    }
+
+    .section pre {
+      max-width: 64rem;
+      padding: 1rem 1.15rem;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: #e8eef5;
+      background: #1a2332;
+      border: 1px solid var(--line);
+      border-radius: 0.35rem;
+      margin: 0 0 1.5rem;
+    }
+
+    .proof-figure {
+      max-width: 64rem;
+      margin: 0 0 2rem;
+    }
+
+    .proof-figure img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--line);
+      background: #1a2332;
+    }
+
+    .proof-figure figcaption {
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hero h1,
+      .hero .lede,
+      .hero .meta,
+      .hero .cta-row {
+        animation: rise 0.7s ease both;
+      }
+
+      .hero .lede { animation-delay: 0.08s; }
+      .hero .meta { animation-delay: 0.16s; }
+      .hero .cta-row { animation-delay: 0.24s; }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar sticky-top">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <a class="navbar-brand" href="/">rodneydegracia.com</a>
+      <div class="d-flex gap-3">
+        <a class="nav-link-custom" href="/#about">About</a>
+        <a class="nav-link-custom active" href="/#projects">Projects</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Greenfield</h1>
+        <p class="lede">A spec-first harness for building a new app one verified unit at a time.</p>
+        <p class="meta">
+          Python CLI · OpenAI · stdlib HTTP or FastAPI scaffolds ·
+          <a href="https://github.com/rdegraci/greenfield" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+        </p>
+        <div class="cta-row d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/greenfield" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="#proof">See the proof</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem" class="section">
+      <div class="container">
+        <h2>The problem</h2>
+<p>
+          Most greenfield LLM flows ask for an app in one breath and hope the pile compiles.
+        </p>
+<p>
+          I needed a path from an idea to working code where the plan stays written down, each change stays small enough to review, and verification is something I can run without trusting a chat scrollback. What was missing was a harness that turns intent into specs, scaffolds a starter, and then generates and checks one implementation unit at a time while leaving an inspectable trail.
+        </p>
+      </div>
+    </section>
+    <section id="why-built" class="section">
+      <div class="container">
+        <h2>Why I built it</h2>
+<p>
+          Day to day, I wanted to start a project from a short idea and still know what was decided, what was generated, and what still fails verification.
+        </p>
+<p>
+          A local Python CLI was enough for that. The LLM helps with intake, planning, and bounded codegen. The harness owns the order of work, the artifacts under <code>.greenfield/</code>, and the verify step.
+        </p>
+      </div>
+    </section>
+    <section id="built" class="section">
+      <div class="container">
+        <h2>What I built</h2>
+<p>
+          Greenfield is a Python CLI for a spec-first greenfield coding harness: LLM-assisted planning, bounded codegen, repair, and deterministic verification. It turns a project idea into structured specs, applies a deterministic scaffold (stdlib HTTP by default, or FastAPI), decomposes work into small implementation units, generates and verifies one unit at a time, and keeps the trail inspectable under <code>.greenfield/</code>.
+        </p>
+<p>
+          You install with <code>pip install -e .</code>, which provides the <code>greenfield</code> console script. Runtime config lives under the user appdir <code>greenfield/</code> as <code>config.yaml</code> plus <code>.env</code> for secrets such as <code>OPENAI_API_KEY</code>. Generated application source sits in the project root and does not depend on <code>.greenfield/</code> at runtime.
+        </p>
+      </div>
+    </section>
+    <section id="decisions" class="section">
+      <div class="container">
+        <h2>Three decisions</h2>
+
+        <p>
+          These are the craft bets I would defend in a design review, each one about written intent, bounded change, or evidence you can re-run.
+        </p>
+
+        <h3>1. Spec first, then scaffold, then units.</h3>
+<p>
+          The path is idea into <code>SPEC_IN.md</code>, then <code>project_spec.yaml</code> and <code>system_design.yaml</code>, then <code>scaffold apply</code>, then a work plan of implementation units. I was counting on a written design outliving the chat that produced it, because the failure I care about is inventing an architecture while you are already halfway through generated files. Specs and design artifacts live under <code>.greenfield/specs/</code>, so later <code>inspect</code>, <code>status</code>, and <code>advisor</code> can ground answers in what was actually recorded.
+        </p>
+
+        <h3>2. One unit at a time.</h3>
+<p>
+          <code>work plan</code> breaks the design into bounded units. <code>work run &lt;unit-id&gt;</code> gathers context and runs codegen for that unit alone. I can list units, check latest verification, save checkpoints, and evolve features with <code>feature request</code> / <code>feature plan</code> without treating the whole app as one opaque generation. The bet was that reviewable progress beats a single large write. If a unit fails, repair stays attached to that unit’s traces instead of rewriting the project in one pass.
+        </p>
+
+        <h3>3. Deterministic verification owns the grade.</h3>
+<p>
+          <code>verify</code> runs configured checks for the active unit, with retry and repair around that loop. When every unit is complete, <code>integrate</code> runs full <code>pytest tests</code>. Verification reports land under <code>.greenfield/verification/</code>. I was counting on a command I can re-run to decide whether a unit is done, because an LLM saying “looks good” is not a merge bar. The model may propose code and repairs; the harness records whether the verify commands passed.
+        </p>
+
+      </div>
+    </section>
+    <section id="proof" class="section">
+      <div class="container">
+        <h2>Proof</h2>
+        <p>
+          You can follow the same command path from the public README and <a href="https://github.com/rdegraci/greenfield/blob/main/docs/QUICK-START.md" target="_blank" rel="noopener noreferrer">docs/QUICK-START.md</a>.
+        </p>
+        <p>
+          Condensed path from a new directory after install:
+        </p>
+        <pre aria-label="Greenfield condensed command path">greenfield project init
+greenfield spec generate
+greenfield design generate
+greenfield scaffold apply
+greenfield work plan
+greenfield work list
+greenfield work run &lt;unit-id&gt;
+greenfield verify
+greenfield status
+greenfield integrate
+greenfield advisor &quot;What should I do next?&quot;</pre>
+        <p>
+          From the public repo you can also confirm: Python 3.12+, OpenAI key for LLM-backed paths, config under the user appdir, artifacts under <code>.greenfield/</code> (specs, runs, reports, state, traces, verification), and <code>inspect</code> for previewing those artifacts. Operator detail lives in <a href="https://github.com/rdegraci/greenfield/blob/main/docs/OPERATOR-GUIDE.md" target="_blank" rel="noopener noreferrer">docs/OPERATOR-GUIDE.md</a>.
+        </p>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/greenfield-runtime.png"
+            alt="Greenfield runtime architecture: Entry through appdir config, then spec to design to scaffold to bounded work run units with deterministic verify and integrate"
+            width="5768"
+            height="6572"
+            loading="lazy">
+          <figcaption>
+            <strong>Runtime map.</strong> Entry (<code>greenfield</code>) through
+            user-appdir config, then spec → design → scaffold → bounded
+            <code>work run</code> units, with deterministic <code>verify</code> /
+            <code>integrate</code>. LLM helps intake, planning, codegen, and
+            advisor. Durable trail under <code>.greenfield/</code>; app source
+            lives in the project root.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+    <section id="why" class="section">
+      <div class="container">
+        <h2>Why I built it this way</h2>
+<p>
+          These boundaries are the same ones I hold when the cost of a wrong turn is a repo full of generated code I cannot explain.
+        </p>
+<p>
+          I write the spec before I generate the bulk of the app. I change one unit at a time so a failure stays local. I let verify commands decide whether that unit is done. If you are going to use an LLM on a greenfield project, the plan and the grade should still be something you can open on disk.
+        </p>
+      </div>
+    </section>
+    <section id="links" class="section">
+      <div class="container">
+        <p>
+          <a href="https://github.com/rdegraci/greenfield" target="_blank" rel="noopener noreferrer">github.com/rdegraci/greenfield</a>
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/greenfield" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="/">Back home</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container d-flex flex-column flex-md-row gap-2 gap-md-4 justify-content-between">
+      <span>Rodney Degracia, Orlando, FL, USA</span>
+      <span>
+        <a href="mailto:rdegraci@gmail.com">rdegraci@gmail.com</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+</body>
+</html>
