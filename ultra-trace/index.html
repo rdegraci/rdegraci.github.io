@@ -249,8 +249,7 @@
         <h1>ultra-trace</h1>
         <p class="lede">Deterministic Swift static analysis with an assist/gate split.</p>
         <p class="meta">
-          Python · Swift Core · optional Advanced SIL ·
-          <a href="https://github.com/rdegraci/ultra-trace" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+          Python · Swift Core · optional Advanced SIL · <a href="https://github.com/rdegraci/ultra-trace" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
         </p>
         <div class="cta-row d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/ultra-trace" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -262,90 +261,82 @@
     <section id="problem" class="section">
       <div class="container">
         <h2>The problem</h2>
-        <p>
-          Swift teams need static analysis that can gate a build offline and still
-          help a human explore risky paths. Chat-only tools blur those jobs and
-          send code to a model. I wanted those contracts separated.
+<p>
+          Swift teams need static analysis that can gate a build offline and still help a human explore risky paths. Chat-only tools blur those jobs and send code to a model.
+        </p>
+<p>
+          I needed those contracts kept separate (assist for exploration, gate for CI), and I did not want the model anywhere near the exit code.
         </p>
       </div>
     </section>
-
     <section id="why-built" class="section">
       <div class="container">
         <h2>Why I built it</h2>
-        <p>
-          I use <code>explore</code> to understand paths with LLM help. I use
-          <code>analyze</code> to gate the build.
+<p>
+          Day to day, I use <code>explore</code> when I want to understand paths with optional LLM help, and I use <code>analyze</code> when I need to gate the build.
+        </p>
+<p>
+          They share the same engine with different contracts. That is the whole point: one analyzer I can trust in CI, and still lean on day-to-day when I want another careful look at a risky path. I was counting on CI meaning an offline, deterministic exit that optional assist never owns.
         </p>
       </div>
     </section>
-
     <section id="built" class="section">
       <div class="container">
         <h2>What I built</h2>
-        <p>
-          I built a deterministic static analysis CLI for Swift (Core), with
-          optional Advanced SIL, bounded call summaries, and a Python frontend.
-          Entry points are <code>ultra-trace</code> and
-          <code>python -m ultra_trace</code>. macOS and Xcode are required to
-          build the SwiftSyntax helper.
+<p>
+          ultra-trace is a deterministic static analysis CLI for Swift (Core), with optional Advanced SIL, bounded call summaries, and a Python frontend. Entry points are <code>ultra-trace</code> and <code>python -m ultra_trace</code>. macOS and Xcode are required to build the SwiftSyntax helper.
         </p>
-        <p>Dual mode:</p>
+        <p>Dual mode covers two contracts:</p>
         <ul>
           <li>
-            <strong><code>explore</code></strong> — day-to-day assist. Optional LLM.
-            Advisory. Soft exit unless you pass <code>--fail-on-findings</code>.
+            <strong><code>explore</code></strong> is day-to-day assist. The LLM is optional.
+            Results stay advisory. The process uses a soft exit unless you pass
+            <code>--fail-on-findings</code>.
           </li>
           <li>
-            <strong><code>analyze</code></strong> — CI / nightly gate. Offline.
-            LLM off. Same analysis engine.
+            <strong><code>analyze</code></strong> is the CI / nightly gate. It runs offline
+            with the LLM off. It uses the same analysis engine.
           </li>
         </ul>
-        <p>
-          Reports write markdown, JSON, and SARIF. High findings can carry proof
-          artifacts with tiers. Privacy modes are <code>offline</code>,
-          <code>redacted</code>, and <code>full-assist</code>. API keys live only
-          in the appdir <code>.env</code>, never in YAML. Phases 1–6 are complete.
-          Phase 7 covers platform maturity: Mac fleet bootstrap, perf budgets,
-          SARIF export, and operator hygiene.
+<p>
+          Reports write markdown, JSON, and SARIF, and high findings can carry proof artifacts with tiers. Privacy modes are <code>offline</code>, <code>redacted</code>, and <code>full-assist</code>, while API keys live only in the appdir <code>.env</code>, never in YAML. Phases 1 through 6 are complete, and Phase 7 covers platform maturity: Mac fleet bootstrap, perf budgets, SARIF export, and operator hygiene.
+        </p>
+<p>
+          You launch with <code>ultra-trace</code> or <code>python -m ultra_trace</code>.
         </p>
       </div>
     </section>
-
     <section id="decisions" class="section">
       <div class="container">
         <h2>Three decisions</h2>
 
+        <p>
+          These are the craft bets I would defend in a design review, each one about honesty, ownership, or maintainability.
+        </p>
+
         <h3>1. Dual mode is the product.</h3>
         <p>
-          Assist and gate share one engine and keep different contracts. Explore
-          is human-first and advisory. Analyze owns CI exit codes and severity
-          thresholds. That split is the design, not a flag bolted on later.
+          Assist and gate share one engine and keep different contracts: explore is human-first and advisory, while analyze owns CI exit codes and severity thresholds. That split is the design, not a flag added later. I split the modes so optional assist never gets to own whether the build fails, which gives me one analyzer I can trust in CI, and still use day-to-day with help when I want it. I was counting on a gate guaranteeing an offline exit code driven by severity thresholds the model cannot rewrite, and on one engine with two contracts being better than two products that drift apart. Dual mode is the product rather than a later flag. Separate contracts on one engine keep a chat tool from drifting into the gate, and keep a gate from shipping half-baked LLM opinions into the exit code.
         </p>
 
-        <h3>2. The analyzer owns findings; the LLM is advisory only.</h3>
+        <h3>2. The analyzer owns findings; the LLM stays advisory.</h3>
         <p>
-          When assist is on, the model may propose an exploration plan, draft
-          advisory wording, or emit optional <code>llm.proposed_candidate</code>
-          items. It never changes severity, confidence, or proof tier. Offline
-          wins over <code>--llm-enabled</code>. Proposed candidates never fail
-          Core severity gates alone.
+          When assist is on, the model may propose an exploration plan, draft advisory wording, or emit optional <code>llm.proposed_candidate</code> items, but it never changes severity, confidence, or proof tier. Offline wins over <code>--llm-enabled</code>. Proposed candidates never fail Core severity gates alone. Severity and proof have to come from the deterministic engine, or CI stops meaning anything. I was counting on severity, confidence, and proof tier only meaning something in CI if they come from the deterministic engine, and on offline winning over a flag as how I prevent turning the gate into an online call by habit. The model can help me look but cannot rewrite the grade. That is not distrust of the model; it is respect for what a gate has to mean.
         </p>
 
-        <h3>3. Proofs and privacy are engineered, not bolted on.</h3>
+        <h3>3. Proofs and privacy are engineered into the product.</h3>
         <p>
-          High findings get proof tiers: runnable scaffold, repro steps, path
-          witness, or unsupported. Keys stay in the appdir <code>.env</code>.
-          <code>offline</code> blocks network and forces the LLM off. Redacted and
-          full-assist sanitize outbound text. Toolchain pins, drift checks, and
-          SARIF support a Mac fleet and Code Scanning — not a demo script.
+          High findings get proof tiers: runnable scaffold, repro steps, path witness, or unsupported. Keys stay in the appdir <code>.env</code>, <code>offline</code> blocks network and forces the LLM off, and redacted and full-assist sanitize outbound text. Toolchain pins, drift checks, and SARIF support a Mac fleet and Code Scanning, not a demo script. If a finding can fail a build, I want a path I can inspect offline, not a hunch, and proof tiers make &quot;why did this fail?&quot; answerable. I was counting on a build-failing finding needing a path that is inspectable offline; on privacy modes existing so assist never sends more code than the chosen mode allows; and on fleet operators needing pins and SARIF rather than a demo script. Proofs, privacy, and operator hygiene are engineered into the product instead of left as docs afterthoughts. Privacy modes and appdir keys keep assist optional without turning YAML into a secret store or sending more code than the mode allows. Pins and SARIF are for operators who have to run this on a fleet, not for a one-off demo. The offline path is the point, because trust in a gate starts there.
         </p>
+
       </div>
     </section>
-
     <section id="proof" class="section">
       <div class="container">
         <h2>Proof</h2>
+        <p>
+          You can follow the dual-mode recipes and walk the same engine path yourself.
+        </p>
 
         <figure class="proof-figure">
           <img
@@ -355,14 +346,14 @@
             height="8472"
             loading="lazy">
           <figcaption>
-            <strong>Runtime map</strong> — How ultra-trace boots and routes work:
-            entry (<code>ultra-trace</code> / <code>python -m ultra_trace</code>)
-            through config and modes (<code>explore</code>, <code>analyze</code>,
+            <strong>Runtime map.</strong> How ultra-trace boots and routes work: entry
+            (<code>ultra-trace</code> / <code>python -m ultra_trace</code>) through
+            config and modes (<code>explore</code>, <code>analyze</code>,
             <code>repl</code>, <code>serve</code>), discovery and Swift/Python
             frontends, into the analyzer-owned engine, rule packs and proofs, then
-            md / json / SARIF. LLM assist stays advisory only — it never owns
-            severity, confidence, or proof tier. Optional Advanced SIL falls back
-            to Core when unavailable.
+            md / json / SARIF. LLM assist stays advisory only and never owns
+            severity, confidence, or proof tier, while optional Advanced SIL falls
+            back to Core when unavailable.
           </figcaption>
         </figure>
 
@@ -374,19 +365,23 @@
           <li>Toolchain pins, bootstrap scripts, and operator guides</li>
           <li>Exit codes and known limitations documented in the README</li>
         </ul>
-        <p>
-          <a href="https://github.com/rdegraci/ultra-trace" target="_blank" rel="noopener noreferrer">github.com/rdegraci/ultra-trace</a>
-        </p>
       </div>
     </section>
-
     <section id="why" class="section">
       <div class="container">
         <h2>Why I built it this way</h2>
+<p>
+          These boundaries are the same ones I hold in iOS work: clear ownership, real persistence of contract, and something a technical peer can judge quickly.
+        </p>
+<p>
+          I use dual mode so assist never owns CI. I keep analyzer-owned findings so the model stays advisory. I engineer proofs and privacy so a failing gate has an offline path you can trust. Assist and CI gate stay separate contracts on one deterministic core. The optional LLM can advise; it cannot rewrite the gate. If a finding can fail a build, the path that produced it should be something you can trust offline.
+        </p>
+      </div>
+    </section>
+    <section id="links" class="section">
+      <div class="container">
         <p>
-          I wanted a Swift analysis CLI that keeps assist and CI gate as separate
-          contracts: a deterministic core, an optional LLM that cannot rewrite the
-          gate, and proofs and privacy designed for a Mac fleet.
+          <a href="https://github.com/rdegraci/ultra-trace" target="_blank" rel="noopener noreferrer">github.com/rdegraci/ultra-trace</a>
         </p>
         <div class="d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/ultra-trace" target="_blank" rel="noopener noreferrer">View on GitHub</a>

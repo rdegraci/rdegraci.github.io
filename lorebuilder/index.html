@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>LoreBuilder CLI — Rodney Degracia</title>
-  <meta name="description" content="Case study: LoreBuilder CLI — a persistent world you can talk to. Python CLI with RAG, Chroma, and SQLite sessions.">
+  <meta name="description" content="Case study: LoreBuilder CLI — a persistent world you can talk to. Python CLI · RAG + Chroma · SQLite sessions.">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -203,6 +203,14 @@
       color: var(--muted);
     }
 
+    .section ul {
+      font-size: 1.05rem;
+      line-height: 1.75;
+      color: var(--muted);
+      max-width: 64rem;
+      padding-left: 1.25rem;
+    }
+
     footer {
       border-top: 1px solid var(--line);
       padding: 2rem 0;
@@ -261,12 +269,11 @@
         <h1>LoreBuilder CLI</h1>
         <p class="lede">A persistent world you can talk to.</p>
         <p class="meta">
-          Python CLI · RAG + Chroma · SQLite sessions ·
-          <a href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+          Python CLI · RAG + Chroma · SQLite sessions · <a href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
         </p>
         <div class="cta-row d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">View on GitHub</a>
-          <a class="btn btn-accent" href="#proof">Watch the demo</a>
+          <a class="btn btn-accent" href="#proof">See the proof</a>
         </div>
       </div>
     </section>
@@ -274,69 +281,69 @@
     <section id="problem" class="section">
       <div class="container">
         <h2>The problem</h2>
-        <p>
-          World-building tools dump text. They do not keep a queryable world, or
-          let you talk to the people in it. I needed lore that is stored,
-          retrieved, and used in conversation: locally, replayably, without a
-          web stack.
+<p>
+          Most lore tools forget the world the moment you close the session.
+        </p>
+<p>
+          I needed lore that stayed put after I walked away. The usual pattern is a dump of text into a pile: searchable if you are lucky, conversational if you paste it back into a chat window, and gone the next time you need it. What was missing was a world you can query on purpose, and people inside it you can talk to without rebuilding context by hand every time.
         </p>
       </div>
     </section>
-
+    <section id="why-built" class="section">
+      <div class="container">
+        <h2>Why I built it</h2>
+<p>
+          Day to day, I wanted to write a fact, find it later, and talk to a character who actually remembered what I wrote.
+        </p>
+<p>
+          A local CLI was enough for that. I work at a prompt that keeps the world honest, and I can replay a session when I need to show someone how the retrieval path works.
+        </p>
+      </div>
+    </section>
     <section id="built" class="section">
       <div class="container">
         <h2>What I built</h2>
-        <p>
-          I built LoreBuilder as a Python CLI that treats lore as a small
-          product. You add a fact, it is embedded and searchable. Character
-          names are pulled from the text. Then you talk to one of them, and the
-          reply is grounded in the world you just wrote.
+<p>
+          LoreBuilder is a Python CLI that treats lore like a small product: you add a fact, it gets embedded and becomes searchable, character names get pulled out of the text, and then you talk to one of them with replies grounded in the world you just wrote.
         </p>
-        <p>
-          Launch is <code>python app.py</code>. Work happens at a
-          <code>&gt;&gt;</code> prompt.
+<p>
+          You launch with <code>python app.py</code>. Work happens at a <code>&gt;&gt;</code> prompt.
         </p>
       </div>
     </section>
-
     <section id="decisions" class="section">
       <div class="container">
         <h2>Three decisions</h2>
 
-        <h3>1. Split the world from the conversation.</h3>
         <p>
-          Lore lives in Chroma (semantic). Chat lives in SQLite (per-character
-          sessions). Adding lore is a write. Generating lore is a draft;
-          storing it is an explicit commit. That is a product, not an LLM
-          wrapper.
+          These are the craft bets I would defend in a design review, each one about honesty, ownership, or maintainability.
+        </p>
+
+        <h3>1. World and conversation stay separate.</h3>
+        <p>
+          I keep world lore and conversation in different stores on purpose. Lore goes in Chroma. Chat goes in SQLite, one session per character. Adding lore is a write. Generating something is only a draft until I commit it. I was counting on committed facts outliving a cleared chat, because the failure I care about is a bad turn silently rewriting the world. If yesterday&#x27;s lore and today&#x27;s banter live in one blob, you stop knowing which is which.
         </p>
 
         <h3>2. Characters come from the text, not a roster.</h3>
         <p>
-          On the tape, <code>add_lore</code> introduces Captain Voss.
-          <code>list_characters</code> then shows <code>Voss</code> and
-          <code>Mary</code>: names extracted from stored lore, including entries
-          that were already in the world (Mary, Ardelune, the council of
-          scholars). The cast stays in sync with the writing.
+          On the tape, <code>add_lore</code> introduces Captain Voss, and <code>list_characters</code> then shows <code>Voss</code> and <code>Mary</code>, names pulled from stored lore, including entries that were already in the world (Mary, Ardelune, the council of scholars). The cast stays in sync with the writing, so I do not maintain a separate character sheet. If a name is not in the lore, it is not a character you can chat with. The bet was that the writing should decide who exists. I would rather refuse a chat than invent someone the world never named, or keep a roster that claims people the text never mentioned.
         </p>
 
         <h3>3. A command registry, not a growing REPL.</h3>
         <p>
-          Commands are listed in categories (Lore / Characters / System). Help
-          is generated from the registry. I kept one handler per file and left
-          deprecated modules unregistered. The demo on tape is slightly ahead
-          of the public repo (<code>chat_to</code> / <code>chat_with</code> /
-          <code>reset_chat</code> vs the published <code>chat_as</code>).
+          Commands sit in categories (Lore / Characters / System), and help is generated from the registry. I kept one handler per file and left deprecated modules unregistered. Adding a command is a registration, not another <code>if</code> in a mega-loop, so help stays accurate without me rewriting it by hand. I was counting on future me (and anyone reading the repo) judging the CLI by whether help stays true as the list grows. The demo on tape is slightly ahead of the public repo (<code>chat_to</code> / <code>chat_with</code> / <code>reset_chat</code> versus the published <code>chat_as</code>). I leave that gap visible on purpose. Hiding it would make the story cleaner than the code.
         </p>
+
       </div>
     </section>
-
     <section id="proof" class="section">
       <div class="container">
         <h2>Proof</h2>
         <p>
-          From the tape — add lore, query it, list characters extracted from the
-          world, then chat with Voss grounded in what you just wrote.
+          You can replay the same session and watch the retrieval path yourself.
+        </p>
+        <p>
+          Replay, not a live session: <code>asciinema play -s 4 lorebuilder-demo.cast</code>
         </p>
 
         <video class="demo-video" controls playsinline preload="metadata" src="../assets/lorebuilder-demo.mp4">
@@ -362,13 +369,10 @@ Characters mentioned in world lore (2):
 Voss>> Ah, the compass—an artifact of my own making, but with a burden far heavier than mere metal and glass. It never points north because it seeks to remind me of the weight of my oaths.</pre>
 
         <p>
-          The rest of the reply stays in character and pulls Ardelune and the
-          council of scholars into the same answer. That is retrieval, not a
-          canned line.
+          The rest of the reply stays in character and pulls Ardelune and the council of scholars into the same answer. That is retrieval, not a canned line.
         </p>
         <p>
-          The clip ends at a new <code>&gt;&gt;</code> prompt; the last frames
-          also show <code>exit</code> returning to the shell.
+          The clip ends at a new <code>&gt;&gt;</code> prompt; the last frames also show <code>exit</code> returning to the shell.
         </p>
 
         <figure class="proof-figure">
@@ -379,7 +383,7 @@ Voss>> Ah, the compass—an artifact of my own making, but with a burden far hea
             height="3939"
             loading="lazy">
           <figcaption>
-            <strong>Runtime map</strong> — Entry (<code>python app.py</code> / bootstrap)
+            <strong>Runtime map.</strong> Entry (<code>python app.py</code> / bootstrap)
             through Config and CLI command registry; Lore and Chat commands; Core
             (LoreService RAG + LLM write path, NER, fuzzy aliases); LiteLLM; Storage
             (ChromaDB lore collection, SentenceTransformer embeddings, SQLite chat history).
@@ -388,15 +392,19 @@ Voss>> Ah, the compass—an artifact of my own making, but with a burden far hea
 
       </div>
     </section>
-
     <section id="why" class="section">
       <div class="container">
         <h2>Why I built it this way</h2>
-        <p>
-          I wanted a small Python system with the same standards I use in iOS
-          work: clear module boundaries, persistence, and a CLI a technical
-          person can judge in under two minutes.
+<p>
+          These boundaries are the same ones I hold in iOS work: clear ownership, real persistence, and something a technical peer can judge quickly.
         </p>
+<p>
+          I keep separate storage so chat cannot rewrite lore. I derive characters from what is stored so the cast stays honest. I use a registry so the CLI stays maintainable. If you are going to talk to characters, they should answer from stored facts, not from a prompt that forgot yesterday&#x27;s entry.
+        </p>
+      </div>
+    </section>
+    <section id="links" class="section">
+      <div class="container">
         <p>
           <a href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">github.com/rdegraci/lorebuilder-cli</a>
         </p>
