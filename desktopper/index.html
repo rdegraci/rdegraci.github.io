@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Desktopper — Rodney Degracia</title>
+  <meta name="description" content="Case study: Desktopper — ordinary language to a local schema-driven app. Python · SQLite · Safari.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a2332;
+      --muted: #5a6577;
+      --surface: #f7f4ef;
+      --accent: #0d6e6e;
+      --accent-hover: #0a5555;
+      --line: rgba(26, 35, 50, 0.12);
+    }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(13, 110, 110, 0.12), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 0%, rgba(26, 35, 50, 0.06), transparent 50%),
+        linear-gradient(180deg, #fbfaf7 0%, var(--surface) 45%, #efebe3 100%);
+      min-height: 100vh;
+    }
+
+    .brand-name,
+    h1, h2, h3 {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .navbar {
+      background: rgba(251, 250, 247, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .navbar-brand {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 1.35rem;
+      color: var(--ink) !important;
+    }
+
+    .nav-link-custom {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .nav-link-custom:hover,
+    .nav-link-custom.active {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 6rem 0 4rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 3.75rem);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .hero .lede {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      max-width: 64rem;
+    }
+
+    .hero .meta {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 64rem;
+    }
+
+    .hero .meta a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .hero .meta a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-accent {
+      --bs-btn-color: #fff;
+      --bs-btn-bg: var(--accent);
+      --bs-btn-border-color: var(--accent);
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: var(--accent-hover);
+      --bs-btn-hover-border-color: var(--accent-hover);
+      --bs-btn-active-color: #fff;
+      --bs-btn-active-bg: var(--accent-hover);
+      --bs-btn-active-border-color: var(--accent-hover);
+      padding: 0.65rem 1.35rem;
+      font-weight: 500;
+    }
+
+    .section {
+      padding: 4.5rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section h2 {
+      font-size: clamp(1.85rem, 4vw, 2.5rem);
+      margin-bottom: 1.5rem;
+    }
+
+    .section h3 {
+      font-size: clamp(1.35rem, 3vw, 1.65rem);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .section h3:first-of-type {
+      margin-top: 0;
+    }
+
+    .section p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 64rem;
+    }
+
+    .section p strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .section a:not(.btn) {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .section a:not(.btn):hover {
+      text-decoration: underline;
+    }
+
+    .section ul {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 64rem;
+      padding-left: 1.25rem;
+    }
+
+    .section ul li {
+      margin-bottom: 0.5rem;
+    }
+
+    code {
+      color: var(--ink);
+      background: rgba(26, 35, 50, 0.06);
+      padding: 0.1em 0.35em;
+      font-size: 0.92em;
+    }
+
+    .proof-figure {
+      max-width: 64rem;
+      margin: 0 0 2rem;
+    }
+
+    .proof-figure img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--line);
+      background: #1a2332;
+    }
+
+    .proof-figure figcaption {
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hero h1,
+      .hero .lede,
+      .hero .meta,
+      .hero .cta-row {
+        animation: rise 0.7s ease both;
+      }
+
+      .hero .lede { animation-delay: 0.08s; }
+      .hero .meta { animation-delay: 0.16s; }
+      .hero .cta-row { animation-delay: 0.24s; }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar sticky-top">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <a class="navbar-brand" href="/">rodneydegracia.com</a>
+      <div class="d-flex gap-3">
+        <a class="nav-link-custom" href="/#about">About</a>
+        <a class="nav-link-custom active" href="/#projects">Projects</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Desktopper</h1>
+        <p class="lede">Ordinary language to a local schema-driven app.</p>
+        <p class="meta">
+          Python · SQLite · Safari · <a href="https://github.com/rdegraci/desktopper" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+        </p>
+        <div class="cta-row d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/desktopper" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="#proof">See the proof</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem" class="section">
+      <div class="container">
+        <h2>The problem</h2>
+<p>
+          Small local apps usually go one of two ways. You hand-write the HTML, JavaScript, and SQL yourself, or you let a model invent the whole stack. I have done both. Neither ages well. I wanted to describe tables and screens in plain language without giving the model the render path.
+        </p>
+      </div>
+    </section>
+    <section id="why-built" class="section">
+      <div class="container">
+        <h2>Why I built it</h2>
+<p>
+          Day to day, I wanted to spin up a work dashboard fast, with real CRUD on resources I would actually use, without hand-building every screen or handing the whole stack to a model.
+        </p>
+<p>
+          A local macOS app was enough for that. In Ops I say what should change. The model comes back with an additive schema diff in JSON, not a pile of markup. Python checks it and applies it to SQLite. Safari then shows lists, forms, and layouts from that schema. The model never writes HTML, JavaScript, or SQL.
+        </p>
+      </div>
+    </section>
+    <section id="built" class="section">
+      <div class="container">
+        <h2>What I built</h2>
+<p>
+          Desktopper is a local macOS app that treats the schema like the product. Ops is where you talk about the model. Home is the generated UI: lists, forms, related child lists, belongs-to links, scopes, field groups, empty states, and layouts.
+        </p>
+<p>
+          Flask serves a frozen shell. Everything durable (data, secrets, knobs) sits under Application Support. There is no Node or npm in the stack.
+        </p>
+<p>
+          Once the schema is in place there is more: Python hooks on create, update, delete, or startup; reminders and notices; formulas and rules; auth with column grants; CSV import profiles; peer sync with last-write-wins. The process binds where you tell it and refuses <code>0.0.0.0</code>.
+        </p>
+      </div>
+    </section>
+    <section id="decisions" class="section">
+      <div class="container">
+        <h2>Three decisions</h2>
+
+        <p>
+          These are the craft bets I would defend in a design review, each one about honesty, ownership, or maintainability.
+        </p>
+
+        <h3>1. Diffs, not markup.</h3>
+<p>
+          The LLM proposes. The host applies. Persistence and the UI shell stay in Python and static files. I was counting on that boundary holding when the model gets creative, because the failure I care about is trusting a generated stack I cannot audit. If the model writes HTML, JavaScript, or SQL, you are back to hoping the render path is honest.
+        </p>
+
+        <h3>2. Home is generated; Ops is separate.</h3>
+<p>
+          Safari loads a frozen HTML/CSS/JS shell. Screens come from the schema. Home has no chat box. You open Ops when you mean to change the model; it does not redirect you there. I was counting on a clear mode switch so a work dashboard stays a dashboard. Mixing chat into the runtime UI would blur the line between using the app and rewriting it.
+        </p>
+
+        <h3>3. Secrets stay off the wire.</h3>
+<p>
+          Keys live in Application Support <code>.env</code>, never in YAML. Knobs live in <code>conf.yaml</code>. The server will not serve either over HTTP, and bind stays local. I was counting on local ownership for something I would actually use day to day. If secrets ride the same path as screens, the app stops being something I trust on a machine I care about.
+        </p>
+
+      </div>
+    </section>
+    <section id="proof" class="section">
+      <div class="container">
+        <h2>Proof</h2>
+        <p>
+          You can follow the same path the runtime takes: Ops intent becomes a schema diff, Python applies it, and Home renders from what landed in SQLite.
+        </p>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/desktopper-runtime.png"
+            alt="Desktopper runtime architecture: Ops intent to LLM schema diff, Python validate/apply to SQLite, Home frozen Safari shell from schema"
+            width="7340"
+            height="5664"
+            loading="lazy">
+          <figcaption>
+            <strong>Runtime map.</strong> Ops intent goes to the LLM for an additive
+            schema diff; Python validates and applies it to SQLite under Application
+            Support. Home loads a frozen Safari shell and renders lists, forms, and
+            layouts from that schema. The model never writes HTML, JavaScript, or SQL.
+          </figcaption>
+        </figure>
+
+        <p>
+          From the public repo, the README spells out that the model does not write HTML, JavaScript, or SQL and that there is no Node/npm; Ops versus Home; appdir bootstrap; the <code>0.0.0.0</code> refusal; and unittests under <code>tests/</code>.
+        </p>
+      </div>
+    </section>
+    <section id="why" class="section">
+      <div class="container">
+        <h2>Why I built it this way</h2>
+<p>
+          These boundaries are the same ones I hold elsewhere: clear ownership, real persistence, and something a technical peer can judge quickly.
+        </p>
+<p>
+          I needed work dashboards with CRUD, not another generated demo. If ordinary language is going to change that app, it should change the schema and stop there. Python owns validation and storage. The shell stays frozen. That is the stack I am willing to trust for something I would actually use day to day.
+        </p>
+      </div>
+    </section>
+    <section id="links" class="section">
+      <div class="container">
+        <p>
+          <a href="https://github.com/rdegraci/desktopper" target="_blank" rel="noopener noreferrer">github.com/rdegraci/desktopper</a>
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/desktopper" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="/">Back home</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container d-flex flex-column flex-md-row gap-2 gap-md-4 justify-content-between">
+      <span>Rodney Degracia, Orlando, FL, USA</span>
+      <span>
+        <a href="mailto:rdegraci@gmail.com">rdegraci@gmail.com</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+</body>
+</html>
