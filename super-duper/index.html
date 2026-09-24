@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>super-duper — Rodney Degracia</title>
+  <meta name="description" content="Case study: super-duper — a planning and execution CLI that turns a goal into a hierarchical plan, fulfills leaf tasks, and writes validated artifacts to disk.">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a2332;
+      --muted: #5a6577;
+      --surface: #f7f4ef;
+      --accent: #0d6e6e;
+      --accent-hover: #0a5555;
+      --line: rgba(26, 35, 50, 0.12);
+    }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(13, 110, 110, 0.12), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 0%, rgba(26, 35, 50, 0.06), transparent 50%),
+        linear-gradient(180deg, #fbfaf7 0%, var(--surface) 45%, #efebe3 100%);
+      min-height: 100vh;
+    }
+
+    .brand-name,
+    h1, h2, h3 {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .navbar {
+      background: rgba(251, 250, 247, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .navbar-brand {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 1.35rem;
+      color: var(--ink) !important;
+    }
+
+    .nav-link-custom {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .nav-link-custom:hover,
+    .nav-link-custom.active {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 6rem 0 4rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 3.75rem);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .hero .lede {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      max-width: 64rem;
+    }
+
+    .hero .meta {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 64rem;
+    }
+
+    .hero .meta a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .hero .meta a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-accent {
+      --bs-btn-color: #fff;
+      --bs-btn-bg: var(--accent);
+      --bs-btn-border-color: var(--accent);
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: var(--accent-hover);
+      --bs-btn-hover-border-color: var(--accent-hover);
+      --bs-btn-active-color: #fff;
+      --bs-btn-active-bg: var(--accent-hover);
+      --bs-btn-active-border-color: var(--accent-hover);
+      padding: 0.65rem 1.35rem;
+      font-weight: 500;
+    }
+
+    .section {
+      padding: 4.5rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section h2 {
+      font-size: clamp(1.85rem, 4vw, 2.5rem);
+      margin-bottom: 1.5rem;
+    }
+
+    .section h3 {
+      font-size: clamp(1.35rem, 3vw, 1.65rem);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .section h3:first-of-type {
+      margin-top: 0;
+    }
+
+    .section p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 64rem;
+    }
+
+    .section p strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .section a:not(.btn) {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .section a:not(.btn):hover {
+      text-decoration: underline;
+    }
+
+    .section ul {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 64rem;
+      padding-left: 1.25rem;
+    }
+
+    .section ul li {
+      margin-bottom: 0.5rem;
+    }
+
+    code {
+      color: var(--ink);
+      background: rgba(26, 35, 50, 0.06);
+      padding: 0.1em 0.35em;
+      font-size: 0.92em;
+    }
+
+    .section pre {
+      max-width: 64rem;
+      padding: 1rem 1.15rem;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: #e8eef5;
+      background: #1a2332;
+      border: 1px solid var(--line);
+      border-radius: 0.35rem;
+      margin: 0 0 1.5rem;
+    }
+
+    .proof-figure {
+      max-width: 64rem;
+      margin: 0 0 2rem;
+    }
+
+    .proof-figure img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--line);
+      background: #1a2332;
+    }
+
+    .proof-figure figcaption {
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hero h1,
+      .hero .lede,
+      .hero .meta,
+      .hero .cta-row {
+        animation: rise 0.7s ease both;
+      }
+
+      .hero .lede { animation-delay: 0.08s; }
+      .hero .meta { animation-delay: 0.16s; }
+      .hero .cta-row { animation-delay: 0.24s; }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar sticky-top">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <a class="navbar-brand" href="/">rodneydegracia.com</a>
+      <div class="d-flex gap-3">
+        <a class="nav-link-custom" href="/#about">About</a>
+        <a class="nav-link-custom active" href="/#projects">Projects</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>super-duper</h1>
+        <p class="lede">A planning and execution CLI that turns a goal into a hierarchical plan, fulfills leaf tasks, and writes validated artifacts to disk.</p>
+        <p class="meta">
+          Python CLI · LiteLLM · ChromaDB · workspace tools ·
+          <a href="https://github.com/rdegraci/super-duper" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+        </p>
+        <div class="cta-row d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/super-duper" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="#proof">See the proof</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem" class="section">
+      <div class="container">
+        <h2>The problem</h2>
+<p>
+          Most autonomous coding agents either dump a whole solution in one pass or keep spending tokens with no clear plan tree you can inspect.
+        </p>
+<p>
+          I needed a path from a natural-language goal to files on disk where the plan stays hierarchical, each leaf is a bounded unit of work, and nothing is marked done until local checks and an LLM validation pass. What was missing was an agent loop I can pause, resume, and replan without treating the whole run as one opaque burn.
+        </p>
+      </div>
+    </section>
+    <section id="why-built" class="section">
+      <div class="container">
+        <h2>Why I built it</h2>
+<p>
+          Day to day, I wanted to state a goal, get a plan I can read, generate leaf by leaf, and keep state in ChromaDB so an interrupt does not throw away the run.
+        </p>
+<p>
+          A local CLI was enough for that. LiteLLM talks to the provider. ChromaDB holds plans, artifacts, and checkpoints. Validated files land under <code>workspace/</code>, with session logs under <code>logs/</code>.
+        </p>
+      </div>
+    </section>
+    <section id="built" class="section">
+      <div class="container">
+        <h2>What I built</h2>
+<p>
+          super-duper is a CLI agent that plans a hierarchical task tree from a goal, walks open leaves with context retrieval and codegen, validates with cheap local checks before LLM validation, persists state in ChromaDB, and writes artifacts to a workspace. It supports workspace tools (READ / RUN / PATCH), optional <code>--repo</code> awareness for discovery and in-place edits, multi-file package planning, <code>--product</code> mode for layout then ordered vertical slices, and run modes for new goal, continue, replan, and resume.
+        </p>
+<p>
+          You start with <code>python app.py run-agent</code> or <code>python app.py plan</code>, after copying <code>app.yaml.example</code> to <code>app.yaml</code> and <code>.env.example</code> to <code>.env</code>. Secrets stay in <code>.env</code>. Non-secret knobs live in <code>app.yaml</code>. A pytest suite covers the core paths.
+        </p>
+      </div>
+    </section>
+    <section id="decisions" class="section">
+      <div class="container">
+        <h2>Three decisions</h2>
+
+        <p>
+          These are the craft bets I would defend in a design review, each one about readable plans, honest completion, or human control of spend.
+        </p>
+
+        <h3>1. Plan as a tree; fulfill leaves.</h3>
+<p>
+          The LLM decomposes a goal into a hierarchical plan with normalized JSON, depth and leaf caps, and optional package-aware leaves (one leaf per module). The agent loop always picks the next open leaf, retrieves context (and optional repo files), generates an artifact, then validates before marking that leaf complete. I was counting on a plan I can inspect in ChromaDB outliving a single chat response, because the failure I care about is a flat todo list that hides how big the work actually is. Hierarchical planning with smarter post-processing keeps the tree from exploding while still naming the real modules.
+        </p>
+
+        <h3>2. Cheap gates before LLM validation.</h3>
+<p>
+          Local checks run first: FILE header, placeholders, syntax, failed RUN results, and optional workspace <code>compileall</code>. Only then does LLM validation run. I was counting on catching obvious broken files without another model call every time, because the failure I care about is paying for validation on output that never should have left the tool loop. Cheap validation is the default in <code>app.yaml</code>. The model still judges semantic completion; it does not get the first look at a syntax error.
+        </p>
+
+        <h3>3. Modes you own: new, continue, replan, resume.</h3>
+<p>
+          Startup resolves NEW GOAL, CONTINUE, REPLAN, or RESUME (including <code>--checkpoint</code>). <code>--replan</code> cannot combine with <code>--resume</code> or <code>--checkpoint</code>. <code>--confirm-plan</code> can pause for layout approval before codegen. <code>max_agent_rounds</code> caps the loop; stop outcomes include complete, blocked, needs_replan, and round_limit. The bet was that unsupervised burn is a mode failure, not a feature. I keep replan and resume as explicit human choices so an interrupt or a bad plan becomes a decision, not an endless retry.
+        </p>
+
+      </div>
+    </section>
+    <section id="proof" class="section">
+      <div class="container">
+        <h2>Proof</h2>
+        <p>
+          You can follow the same paths from the public README and <a href="https://github.com/rdegraci/super-duper/blob/main/docs/OPERATOR-GUIDE.md" target="_blank" rel="noopener noreferrer">docs/OPERATOR-GUIDE.md</a>.
+        </p>
+        <pre aria-label="super-duper condensed command path">python app.py run-agent --goal &quot;Write a hello-world Python script&quot;
+python app.py plan --plan_goal &quot;Write a hello-world Python script&quot;
+python app.py run-agent --replan --goal &quot;…&quot;
+python app.py run-agent --resume
+ls workspace/</pre>
+        <p>
+          From the public repo you can also confirm: config via <code>app.yaml</code> plus <code>.env</code>, LiteLLM models, ChromaDB under <code>./chroma_db/</code> by default, tools READ / RUN / PATCH, <code>--repo</code> for checkout-aware runs, <code>--product</code> for automatic MVP layout and slices, and architecture notes in <a href="https://github.com/rdegraci/super-duper/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener noreferrer">docs/ARCHITECTURE.md</a>.
+        </p>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/super-duper-runtime.png"
+            alt="super-duper runtime architecture: Entry through config and run modes into hierarchical ChromaDB plan, agent loop over leaves with cheap then LLM validation, workspace writes"
+            width="6212"
+            height="8560"
+            loading="lazy">
+          <figcaption>
+            <strong>Runtime map.</strong> Entry (<code>python app.py</code>) through
+            config and run modes into a hierarchical plan stored in ChromaDB, then
+            an agent loop over open leaves with cheap validation before LLM
+            validation, writing to <code>workspace/</code> and session logs, with
+            explicit stop outcomes including needs_replan and round_limit.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+    <section id="why" class="section">
+      <div class="container">
+        <h2>Why I built it this way</h2>
+<p>
+          These boundaries are the same ones I hold when an agent is allowed to touch a workspace: a plan you can read, a grade that starts with local checks and then a model pass, and modes that make spend a choice.
+        </p>
+<p>
+          I keep the work as a tree of leaves so progress stays reviewable. I run cheap validation before LLM validation so obvious failures stay cheap. I expose new, continue, replan, and resume so I own when the loop burns another round. If you are going to let an agent write files, the plan and the stop conditions should still be something you can name out loud.
+        </p>
+      </div>
+    </section>
+    <section id="links" class="section">
+      <div class="container">
+        <p>
+          <a href="https://github.com/rdegraci/super-duper" target="_blank" rel="noopener noreferrer">github.com/rdegraci/super-duper</a>
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/super-duper" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="/">Back home</a>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container d-flex flex-column flex-md-row gap-2 gap-md-4 justify-content-between">
+      <span>Rodney Degracia, Orlando, FL, USA</span>
+      <span>
+        <a href="mailto:rdegraci@gmail.com">rdegraci@gmail.com</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+</body>
+</html>
