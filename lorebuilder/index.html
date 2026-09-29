@@ -282,9 +282,9 @@
     <section class="hero">
       <div class="container">
         <h1>LoreBuilder CLI</h1>
-        <p class="lede">A persistent world you can talk to.</p>
+        <p class="lede">LoreBuilder is a persistent world you can talk to.</p>
         <p class="meta">
-          Python CLI · RAG + Chroma · SQLite sessions · <a href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+          It is a Python CLI that does RAG over Chroma and keeps its chat sessions in SQLite. You can <a href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">read the code on GitHub</a> or skip ahead and <a href="#proof">see the proof</a>.
         </p>
         <div class="cta-row d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -300,7 +300,7 @@
           Most lore tools forget the world the moment you close the session.
         </p>
 <p>
-          I needed lore that stayed put after I walked away. The usual pattern is a dump of text into a pile: searchable if you are lucky, conversational if you paste it back into a chat window, and gone the next time you need it. What was missing was a world you can query on purpose, and people inside it you can talk to without rebuilding context by hand every time.
+          I needed lore that stayed put after I walked away. The usual pattern is to dump text into a pile. With luck you can search that pile, and you can talk to it if you paste it back into a chat window, but it is gone the next time you need it. What was missing was a world I could query on purpose, with people inside it I could talk to without rebuilding context by hand every time.
         </p>
       </div>
     </section>
@@ -308,10 +308,10 @@
       <div class="container">
         <h2>Why I built it</h2>
 <p>
-          Day to day, I wanted to write a fact, find it later, and talk to a character who actually remembered what I wrote.
+          Day to day, I wanted to write a fact and find it later, and I wanted the character I talked with to actually remember what I wrote.
         </p>
 <p>
-          A local CLI was enough for that. I work at a prompt that keeps the world honest, and I can replay a session when I need to show someone how the retrieval path works.
+          A local CLI was enough for that. I work at a prompt against the world I have stored, and when I need to show someone how the retrieval path works, I can replay a session.
         </p>
       </div>
     </section>
@@ -319,10 +319,10 @@
       <div class="container">
         <h2>What I built</h2>
 <p>
-          LoreBuilder is a Python CLI that treats lore like a small product: you add a fact, it gets embedded and becomes searchable, character names get pulled out of the text, and then you talk to one of them with replies grounded in the world you just wrote.
+          LoreBuilder is a Python CLI that treats lore like a small product. When you add a fact, it gets embedded and becomes searchable, and the character names in it get pulled out of the text. After that you can talk to one of those characters, and the replies are grounded in the world you just wrote.
         </p>
 <p>
-          You launch with <code>python app.py</code>. Work happens at a <code>&gt;&gt;</code> prompt.
+          You launch it with <code>python app.py</code>, and the work happens at a <code>&gt;&gt;</code> prompt.
         </p>
       </div>
     </section>
@@ -331,22 +331,22 @@
         <h2>Three decisions</h2>
 
         <p>
-          These are the craft bets I would defend in a design review, each one about honesty, ownership, or maintainability.
+          These are the three choices I would defend in a design review.
         </p>
 
         <h3>1. World and conversation stay separate.</h3>
         <p>
-          I keep world lore and conversation in different stores on purpose. Lore goes in Chroma. Chat goes in SQLite, one session per character. Adding lore is a write. Generating something is only a draft until I commit it. I was counting on committed facts outliving a cleared chat, because the failure I care about is a bad turn silently rewriting the world. If yesterday&#x27;s lore and today&#x27;s banter live in one blob, you stop knowing which is which.
+          I keep world lore and conversation in different stores on purpose. Lore goes in Chroma, and chat goes in SQLite with one session per character. Adding lore is a write, while anything the model generates stays a draft until I commit it. I was counting on committed facts outliving a cleared chat, because the failure I care about is a bad turn silently rewriting the world. If yesterday&#x27;s lore and today&#x27;s banter live in one blob, you stop knowing which is which.
         </p>
 
         <h3>2. Characters come from the text, not a roster.</h3>
         <p>
-          On the tape, <code>add_lore</code> introduces Captain Voss, and <code>list_characters</code> then shows <code>Voss</code> and <code>Mary</code>, names pulled from stored lore, including entries that were already in the world (Mary, Ardelune, the council of scholars). The cast stays in sync with the writing, so I do not maintain a separate character sheet. If a name is not in the lore, it is not a character you can chat with. The bet was that the writing should decide who exists. I would rather refuse a chat than invent someone the world never named, or keep a roster that claims people the text never mentioned.
+          On the tape, <code>add_lore</code> introduces Captain Voss, and <code>list_characters</code> then shows <code>Voss</code> and <code>Mary</code>. Those names are pulled from stored lore, including entries that were already in the world (Mary, Ardelune, the council of scholars). Because the cast stays in sync with the writing, I do not maintain a separate character sheet, and a name that is not in the lore is not a character you can chat with. The bet was that the writing should decide who exists.
         </p>
 
-        <h3>3. A command registry, not a growing REPL.</h3>
+        <h3>3. Commands live in a registry instead of a growing REPL.</h3>
         <p>
-          Commands sit in categories (Lore / Characters / System), and help is generated from the registry. I kept one handler per file and left deprecated modules unregistered. Adding a command is a registration, not another <code>if</code> in a mega-loop, so help stays accurate without me rewriting it by hand. I was counting on future me (and anyone reading the repo) judging the CLI by whether help stays true as the list grows. The demo on tape is slightly ahead of the public repo (<code>chat_to</code> / <code>chat_with</code> / <code>reset_chat</code> versus the published <code>chat_as</code>). I leave that gap visible on purpose. Hiding it would make the story cleaner than the code.
+          Commands sit in categories (Lore / Characters / System), and help is generated from the registry. I kept one handler per file and left deprecated modules unregistered. Adding a command means registering it rather than adding another <code>if</code> to a mega-loop, so help stays accurate without me rewriting it by hand. I expected future me (and anyone reading the repo) to judge the CLI by whether help stays true as the list grows. The demo on tape is slightly ahead of the public repo (<code>chat_to</code> / <code>chat_with</code> / <code>reset_chat</code> versus the published <code>chat_as</code>). I leave that gap visible on purpose, because hiding it would make the story cleaner than the code.
         </p>
 
       </div>
@@ -358,13 +358,17 @@
           You can replay the same session and watch the retrieval path yourself.
         </p>
         <p>
-          Replay, not a live session: <code>asciinema play -s 4 lorebuilder-demo.cast</code>
+          This is a recorded session, and you can replay it with <code>asciinema play -s 4 lorebuilder-demo.cast</code>.
         </p>
 
         <video class="demo-video" controls playsinline preload="metadata" src="../assets/lorebuilder-demo.mp4">
           Your browser does not support the video tag.
           <a href="../assets/lorebuilder-demo.mp4">Download the demo</a>
         </video>
+
+        <p>
+          If the video does not play in your browser, you can <a href="../assets/lorebuilder-demo.mp4">download the demo</a>.
+        </p>
 
         <pre class="transcript" aria-label="Demo transcript excerpt">>> add_lore Captain Voss keeps a brass compass that always points to the last place he broke a promise.
 Lore added with id 172161.
@@ -384,10 +388,10 @@ Characters mentioned in world lore (2):
 Voss>> Ah, the compass—an artifact of my own making, but with a burden far heavier than mere metal and glass. It never points north because it seeks to remind me of the weight of my oaths.</pre>
 
         <p>
-          The rest of the reply stays in character and pulls Ardelune and the council of scholars into the same answer. That is retrieval, not a canned line.
+          The rest of the reply stays in character and pulls Ardelune and the council of scholars into the same answer. The model built that answer by retrieving the stored lore, and none of it is a canned line.
         </p>
         <p>
-          The clip ends at a new <code>&gt;&gt;</code> prompt; the last frames also show <code>exit</code> returning to the shell.
+          The clip ends at a new <code>&gt;&gt;</code> prompt, and the last frames also show <code>exit</code> returning to the shell.
         </p>
 
         <figure class="proof-figure">
@@ -398,10 +402,7 @@ Voss>> Ah, the compass—an artifact of my own making, but with a burden far hea
             height="3939"
             loading="lazy">
           <figcaption>
-            <strong>Runtime map.</strong> Entry (<code>python app.py</code> / bootstrap)
-            through Config and CLI command registry; Lore and Chat commands; Core
-            (LoreService RAG + LLM write path, NER, fuzzy aliases); LiteLLM; Storage
-            (ChromaDB lore collection, SentenceTransformer embeddings, SQLite chat history).
+            The runtime map traces the path from entry to storage. It starts at Entry (<code>python app.py</code> / bootstrap) and runs through Config and the CLI command registry to the Lore and Chat commands. From there it reaches Core (LoreService RAG + LLM write path, NER, fuzzy aliases), then LiteLLM, and it ends at Storage (ChromaDB lore collection, SentenceTransformer embeddings, SQLite chat history).
           </figcaption>
         </figure>
 
@@ -411,17 +412,17 @@ Voss>> Ah, the compass—an artifact of my own making, but with a burden far hea
       <div class="container">
         <h2>Why I built it this way</h2>
 <p>
-          These boundaries are the same ones I hold in iOS work: clear ownership, real persistence, and something a technical peer can judge quickly.
+          I hold the same boundaries in my iOS work. I want clear ownership and real persistence, and I want a design that a technical peer can judge quickly.
         </p>
 <p>
-          I keep separate storage so chat cannot rewrite lore. I derive characters from what is stored so the cast stays honest. I use a registry so the CLI stays maintainable. If you are going to talk to characters, they should answer from stored facts, not from a prompt that forgot yesterday&#x27;s entry.
+          Separate storage means chat cannot rewrite lore, and deriving characters from what is stored keeps the cast honest. The registry is what keeps the CLI maintainable as the command list grows. If I am going to talk to characters, I want them answering from stored facts rather than from a prompt that forgot yesterday&#x27;s entry.
         </p>
       </div>
     </section>
     <section id="links" class="section">
       <div class="container">
         <p>
-          <a href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">github.com/rdegraci/lorebuilder-cli</a>
+          The code lives at <a href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">github.com/rdegraci/lorebuilder-cli</a>, and you can go <a href="/">back home</a> from here.
         </p>
         <div class="d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/lorebuilder-cli" target="_blank" rel="noopener noreferrer">View on GitHub</a>
