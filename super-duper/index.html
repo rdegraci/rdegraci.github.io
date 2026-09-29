@@ -275,10 +275,9 @@
     <section class="hero">
       <div class="container">
         <h1>super-duper</h1>
-        <p class="lede">A planning and execution CLI that turns a goal into a hierarchical plan, fulfills leaf tasks, and writes validated artifacts to disk.</p>
+        <p class="lede">super-duper is a planning and execution CLI. It turns a goal into a hierarchical plan, fulfills the leaf tasks, and writes validated artifacts to disk.</p>
         <p class="meta">
-          Python CLI · LiteLLM · ChromaDB · workspace tools ·
-          <a href="https://github.com/rdegraci/super-duper" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+          It is a Python CLI built on LiteLLM and ChromaDB, with workspace tools. You can <a href="https://github.com/rdegraci/super-duper" target="_blank" rel="noopener noreferrer">read the code on GitHub</a> or skip ahead and <a href="#proof">see the proof</a>.
         </p>
         <div class="cta-row d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/super-duper" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -291,10 +290,10 @@
       <div class="container">
         <h2>The problem</h2>
 <p>
-          Most autonomous coding agents either dump a whole solution in one pass or keep spending tokens with no clear plan tree you can inspect.
+          Most autonomous coding agents either dump a whole solution in one pass or keep spending tokens with no plan tree you can inspect.
         </p>
 <p>
-          I needed a path from a natural-language goal to files on disk where the plan stays hierarchical, each leaf is a bounded unit of work, and nothing is marked done until local checks and an LLM validation pass. What was missing was an agent loop I can pause, resume, and replan without treating the whole run as one opaque burn.
+          I needed a path from a natural-language goal to files on disk. The plan had to stay hierarchical with each leaf as a bounded unit of work, and nothing could be marked done until local checks and an LLM validation passed. What was missing was an agent loop I can pause, resume, and replan without treating the whole run as one opaque burn.
         </p>
       </div>
     </section>
@@ -302,10 +301,10 @@
       <div class="container">
         <h2>Why I built it</h2>
 <p>
-          Day to day, I wanted to state a goal, get a plan I can read, generate leaf by leaf, and keep state in ChromaDB so an interrupt does not throw away the run.
+          Day to day, I wanted to state a goal and get a plan I can read, then generate it leaf by leaf with state kept in ChromaDB so an interrupt does not throw away the run.
         </p>
 <p>
-          A local CLI was enough for that. LiteLLM talks to the provider. ChromaDB holds plans, artifacts, and checkpoints. Validated files land under <code>workspace/</code>, with session logs under <code>logs/</code>.
+          A local CLI was enough for that. LiteLLM talks to the provider, and ChromaDB holds plans, artifacts, and checkpoints. Validated files land under <code>workspace/</code>, with session logs under <code>logs/</code>.
         </p>
       </div>
     </section>
@@ -313,10 +312,10 @@
       <div class="container">
         <h2>What I built</h2>
 <p>
-          super-duper is a CLI agent that plans a hierarchical task tree from a goal, walks open leaves with context retrieval and codegen, validates with cheap local checks before LLM validation, persists state in ChromaDB, and writes artifacts to a workspace. It supports workspace tools (READ / RUN / PATCH), optional <code>--repo</code> awareness for discovery and in-place edits, multi-file package planning, <code>--product</code> mode for layout then ordered vertical slices, and run modes for new goal, continue, replan, and resume.
+          super-duper is a CLI agent that plans a hierarchical task tree from a goal. It walks the open leaves with context retrieval and codegen, validates with cheap local checks before LLM validation, persists state in ChromaDB, and writes artifacts to a workspace. It supports workspace tools (READ / RUN / PATCH), optional <code>--repo</code> awareness for discovery and in-place edits, and multi-file package planning. It also has a <code>--product</code> mode that does the layout first and then ordered vertical slices, plus run modes for new goal, continue, replan, and resume.
         </p>
 <p>
-          You start with <code>python app.py run-agent</code> or <code>python app.py plan</code>, after copying <code>app.yaml.example</code> to <code>app.yaml</code> and <code>.env.example</code> to <code>.env</code>. Secrets stay in <code>.env</code>. Non-secret knobs live in <code>app.yaml</code>. A pytest suite covers the core paths.
+          You start with <code>python app.py run-agent</code> or <code>python app.py plan</code>, after copying <code>app.yaml.example</code> to <code>app.yaml</code> and <code>.env.example</code> to <code>.env</code>. Secrets stay in <code>.env</code>, and non-secret knobs live in <code>app.yaml</code>. A pytest suite covers the core paths.
         </p>
       </div>
     </section>
@@ -325,22 +324,22 @@
         <h2>Three decisions</h2>
 
         <p>
-          These are the craft bets I would defend in a design review, each one about readable plans, honest completion, or human control of spend.
+          These are the three choices I would defend in a design review.
         </p>
 
-        <h3>1. Plan as a tree; fulfill leaves.</h3>
+        <h3>1. The plan is a tree, and the agent fulfills leaves.</h3>
 <p>
-          The LLM decomposes a goal into a hierarchical plan with normalized JSON, depth and leaf caps, and optional package-aware leaves (one leaf per module). The agent loop always picks the next open leaf, retrieves context (and optional repo files), generates an artifact, then validates before marking that leaf complete. I was counting on a plan I can inspect in ChromaDB outliving a single chat response, because the failure I care about is a flat todo list that hides how big the work actually is. Hierarchical planning with smarter post-processing keeps the tree from exploding while still naming the real modules.
+          The LLM decomposes a goal into a hierarchical plan with normalized JSON, depth and leaf caps, and optional package-aware leaves (one leaf per module). The agent loop always picks the next open leaf, retrieves context (and optional repo files), and generates an artifact, then validates it before marking that leaf complete. I was counting on a plan I can inspect in ChromaDB outliving a single chat response, because the failure I care about is a flat todo list that hides how big the work actually is. Hierarchical planning with smarter post-processing keeps the tree from exploding while still naming the real modules.
         </p>
 
-        <h3>2. Cheap gates before LLM validation.</h3>
+        <h3>2. Cheap gates run before LLM validation.</h3>
 <p>
-          Local checks run first: FILE header, placeholders, syntax, failed RUN results, and optional workspace <code>compileall</code>. Only then does LLM validation run. I was counting on catching obvious broken files without another model call every time, because the failure I care about is paying for validation on output that never should have left the tool loop. Cheap validation is the default in <code>app.yaml</code>. The model still judges semantic completion; it does not get the first look at a syntax error.
+          Local checks run first, covering the FILE header, placeholders, syntax, failed RUN results, and an optional workspace <code>compileall</code>. Only then does LLM validation run. I wanted to catch obviously broken files without another model call every time, because paying for validation on output that never should have left the tool loop is a waste. Cheap validation is the default in <code>app.yaml</code>. The model still judges semantic completion, but it does not get the first look at a syntax error.
         </p>
 
-        <h3>3. Modes you own: new, continue, replan, resume.</h3>
+        <h3>3. New, continue, replan, and resume are modes I own.</h3>
 <p>
-          Startup resolves NEW GOAL, CONTINUE, REPLAN, or RESUME (including <code>--checkpoint</code>). <code>--replan</code> cannot combine with <code>--resume</code> or <code>--checkpoint</code>. <code>--confirm-plan</code> can pause for layout approval before codegen. <code>max_agent_rounds</code> caps the loop; stop outcomes include complete, blocked, needs_replan, and round_limit. The bet was that unsupervised burn is a mode failure, not a feature. I keep replan and resume as explicit human choices so an interrupt or a bad plan becomes a decision, not an endless retry.
+          Startup resolves NEW GOAL, CONTINUE, REPLAN, or RESUME (including <code>--checkpoint</code>). <code>--replan</code> cannot combine with <code>--resume</code> or <code>--checkpoint</code>, and <code>--confirm-plan</code> can pause for layout approval before codegen. <code>max_agent_rounds</code> caps the loop, and stop outcomes include complete, blocked, <code>needs_replan</code>, and <code>round_limit</code>. The bet was that unsupervised burn is a mode failure, not a feature. I keep replan and resume as explicit human choices so an interrupt or a bad plan becomes a decision and does not turn into an endless retry.
         </p>
 
       </div>
@@ -357,7 +356,7 @@ python app.py run-agent --replan --goal &quot;…&quot;
 python app.py run-agent --resume
 ls workspace/</pre>
         <p>
-          From the public repo you can also confirm: config via <code>app.yaml</code> plus <code>.env</code>, LiteLLM models, ChromaDB under <code>./chroma_db/</code> by default, tools READ / RUN / PATCH, <code>--repo</code> for checkout-aware runs, <code>--product</code> for automatic MVP layout and slices, and architecture notes in <a href="https://github.com/rdegraci/super-duper/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener noreferrer">docs/ARCHITECTURE.md</a>.
+          The public repo also confirms config via <code>app.yaml</code> plus <code>.env</code>, LiteLLM models, and ChromaDB under <code>./chroma_db/</code> by default. It documents the READ / RUN / PATCH tools, <code>--repo</code> for checkout-aware runs, and <code>--product</code> for automatic MVP layout and slices, and the architecture notes are in <a href="https://github.com/rdegraci/super-duper/blob/main/docs/ARCHITECTURE.md" target="_blank" rel="noopener noreferrer">docs/ARCHITECTURE.md</a>.
         </p>
 
         <figure class="proof-figure">
@@ -368,11 +367,7 @@ ls workspace/</pre>
             height="8560"
             loading="lazy">
           <figcaption>
-            <strong>Runtime map.</strong> Entry (<code>python app.py</code>) through
-            config and run modes into a hierarchical plan stored in ChromaDB, then
-            an agent loop over open leaves with cheap validation before LLM
-            validation, writing to <code>workspace/</code> and session logs, with
-            explicit stop outcomes including needs_replan and round_limit.
+            The runtime map starts at Entry (<code>python app.py</code>) and goes through config and run modes into a hierarchical plan stored in ChromaDB. From there an agent loop walks the open leaves, runs cheap validation before LLM validation, and writes to <code>workspace/</code> and the session logs, with explicit stop outcomes that include <code>needs_replan</code> and <code>round_limit</code>.
           </figcaption>
         </figure>
       </div>
@@ -381,17 +376,17 @@ ls workspace/</pre>
       <div class="container">
         <h2>Why I built it this way</h2>
 <p>
-          These boundaries are the same ones I hold when an agent is allowed to touch a workspace: a plan you can read, a grade that starts with local checks and then a model pass, and modes that make spend a choice.
+          I hold these boundaries whenever an agent is allowed to touch a workspace. I want a plan I can read and a grade that starts with local checks before a model pass, and I want modes that make spend a choice.
         </p>
 <p>
-          I keep the work as a tree of leaves so progress stays reviewable. I run cheap validation before LLM validation so obvious failures stay cheap. I expose new, continue, replan, and resume so I own when the loop burns another round. If you are going to let an agent write files, the plan and the stop conditions should still be something you can name out loud.
+          Keeping the work as a tree of leaves makes progress reviewable, and running cheap validation first keeps obvious failures cheap. Exposing new, continue, replan, and resume means I decide when the loop burns another round. If I am going to let an agent write files, I want the plan and the stop conditions to be things I can name out loud.
         </p>
       </div>
     </section>
     <section id="links" class="section">
       <div class="container">
         <p>
-          <a href="https://github.com/rdegraci/super-duper" target="_blank" rel="noopener noreferrer">github.com/rdegraci/super-duper</a>
+          The code lives at <a href="https://github.com/rdegraci/super-duper" target="_blank" rel="noopener noreferrer">github.com/rdegraci/super-duper</a>, and you can go <a href="/">back home</a> from here.
         </p>
         <div class="d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/super-duper" target="_blank" rel="noopener noreferrer">View on GitHub</a>

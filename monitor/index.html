@@ -262,9 +262,9 @@
     <section class="hero">
       <div class="container">
         <h1>Monitor</h1>
-        <p class="lede">A personal AI coding agent CLI.</p>
+        <p class="lede">Monitor is a personal AI coding agent CLI.</p>
         <p class="meta">
-          Python · REPL + tools · task planning · <a href="https://github.com/rdegraci/monitor" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+          It is a Python REPL with tools and task planning. You can <a href="https://github.com/rdegraci/monitor" target="_blank" rel="noopener noreferrer">read the code on GitHub</a> or skip ahead and <a href="#proof">see the proof</a>.
         </p>
         <div class="cta-row d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/monitor" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -280,7 +280,7 @@
           Day-to-day coding with models usually means bouncing between a chat UI, a terminal, and a pile of ad-hoc scripts.
         </p>
 <p>
-          I needed one harness for repository work (shell, structured tools, and planning) tuned to how I actually work. I did not need another general-purpose agent product.
+          I needed one harness for repository work (shell, structured tools, and planning), tuned to how I actually work, and another general-purpose agent product would not have given me that.
         </p>
       </div>
     </section>
@@ -288,10 +288,10 @@
       <div class="container">
         <h2>Why I built it</h2>
 <p>
-          Day to day, I wanted a harness I reach for when I am in a repo and I want the agent to act through tools I designed, not through whatever a chat window happens to invent that day.
+          Day to day, I wanted a harness I could reach for inside a repo, where the agent acts through tools I designed and does not improvise with whatever a chat window happens to invent that day.
         </p>
 <p>
-          Monitor is my personal AI coding agent CLI. I wrote it for my own daily work, customized to my workflow. It is not meant to be a general-purpose product. The craft choices below optimize for a daily path I trust rather than for a general audience.
+          I wrote Monitor for my own daily work and customized it to my workflow. It is not meant to be a general-purpose product, so the choices below optimize for a daily path I trust.
         </p>
       </div>
     </section>
@@ -299,13 +299,13 @@
       <div class="container">
         <h2>What I built</h2>
 <p>
-          Monitor ships a production entry point (<code>monitor</code> / <code>python -m monitor</code>) with an interactive REPL, built-in commands, LLM-callable tools (git, search, edit, tests, typecheck, memory, todos), macros, and task planning, plus an optional local OpenAI-style HTTP server. Config lives under the platform user config directory, project instructions resolve through <code>AGENTS.md</code> or <code>MONITOR.md</code>, and optional extras (voice, TTS, Chroma, and others) fail at feature use, not at REPL startup.
+          Monitor ships a production entry point (<code>monitor</code> / <code>python -m monitor</code>) that opens an interactive REPL. It has built-in commands, LLM-callable tools (git, search, edit, tests, typecheck, memory, todos), macros, and task planning, and it can also run an optional local OpenAI-style HTTP server. Config lives under the platform user config directory, and project instructions resolve through <code>AGENTS.md</code> or <code>MONITOR.md</code>. Optional extras (voice, TTS, Chroma, and others) fail when you use the feature, so a missing extra never blocks REPL startup.
         </p>
 <p>
-          There is also an alternate OOP stack (<code>monitor-oop</code>) and a full-screen <code>--tui</code> mode. Those are for exploration, experimental by design, while day-to-day work stays on the production path.
+          There is also an alternate OOP stack (<code>monitor-oop</code>) and a full-screen <code>--tui</code> mode. Both are experimental by design and exist for exploration, while day-to-day work stays on the production path.
         </p>
 <p>
-          You launch with <code>monitor</code> or <code>python -m monitor</code>.
+          You launch it with <code>monitor</code> or <code>python -m monitor</code>.
         </p>
       </div>
     </section>
@@ -314,22 +314,22 @@
         <h2>Three decisions</h2>
 
         <p>
-          These are the craft bets I would defend in a design review, each one about honesty, ownership, or maintainability.
+          These are the three choices I would defend in a design review.
         </p>
 
         <h3>1. Production vs experiment stays explicit.</h3>
         <p>
-          The one recommended path is <code>src/monitor/</code>. <code>monitor-oop</code> is labeled experimental and is not the daily entry, and <code>--tui</code> is experimental inside the same entry. That is how I evolve an architecture without lying to myself, or to the README. I can try a new stack without making it the thing I depend on tomorrow morning, which means there is a clear daily path and still room to explore. I was counting on a daily personal harness staying trustworthy only if the recommended path is obvious and experimental work stays labeled. The failure I care about is drift into the default when the README goes soft. Clarity about the path is a craft choice, and how trust in a daily tool starts.
+          The one recommended path is <code>src/monitor/</code>. <code>monitor-oop</code> is labeled experimental and is not the daily entry, and <code>--tui</code> is experimental inside the same entry. Labeling things this way lets me evolve the architecture without lying to myself or to the README, because I can try a new stack without making it the thing I depend on tomorrow morning. I was counting on the harness staying trustworthy only while the recommended path is obvious and experimental work stays labeled. The failure I care about is an experiment drifting into the default when the README goes soft.
         </p>
 
-        <h3>2. Deterministic edits before NL fallback.</h3>
+        <h3>2. Deterministic edits come before the NL fallback.</h3>
         <p>
-          The preferred order is create → str_replace → insert_at_line → bulk_replace → <code>modify_source_code</code> last. The model gets mechanical tools first, and natural-language editing is the escape hatch, not the default, because a precise replace is reviewable and reversible in a way a free-form rewrite is not. I get edits I can trust in a diff, instead of reaching for chatty rewrites first and spending the session cleaning up surprise churn. I was counting on preferring a precise replace in a diff over untangling a free-form rewrite, and on mechanical tools first being the fair default for repository work. Natural-language editing stays the escape hatch. That order is a preference for diffs I can read over rewrites I have to untangle.
+          The preferred order is <code>create</code> → <code>str_replace</code> → <code>insert_at_line</code> → <code>bulk_replace</code> → <code>modify_source_code</code> last. The model gets mechanical tools first, and natural-language editing is the escape hatch, because a precise replace is reviewable and reversible in a way a free-form rewrite is not. That order gives me edits I can trust in a diff, and I do not spend the session cleaning up surprise churn from chatty rewrites. I treated mechanical tools first as the fair default for repository work.
         </p>
 
         <h3>3. Tool surface and safety are designed, not dumped.</h3>
         <p>
-          Tool profiles are <code>minimal</code>, <code>coding</code> (default), <code>review</code>, and <code>full</code>. Runtime rails include nested tool depth caps, repeated-call loop detection, per-path read budgets, and sub-agent write scoping. <code>--check-config</code> reports readiness without printing secrets. The local server defaults to <code>127.0.0.1</code>. Profiles exist so I do not hand the model every tool on every task: coding gets the default set, while review and minimal stay smaller on purpose. The rails are there because an agent that can loop, dig forever, or write outside its scope should not get unlimited access. I was counting on unlimited access (looping, digging forever, or writing outside a scoped path) being the threat that matters on a desk machine, and on matching profiles to task intent as how useful power stays bounded without handing over every tool on every task. The surface is designed first and then bounded. Localhost and secret-safe config checks are the same idea: useful power, with a clear bound on how far a bad run can reach.
+          Tool profiles are <code>minimal</code>, <code>coding</code> (default), <code>review</code>, and <code>full</code>. Runtime rails include nested tool depth caps, repeated-call loop detection, per-path read budgets, and sub-agent write scoping. <code>--check-config</code> reports readiness without printing secrets, and the local server defaults to <code>127.0.0.1</code>. Profiles exist so I do not hand the model every tool on every task. Coding gets the default set, while review and minimal stay smaller on purpose so each profile matches what the task needs. The rails are there because on a desk machine the threat that matters is an agent that loops, digs forever, or writes outside a scoped path. Localhost and secret-safe config checks follow the same idea, which is useful power with a firm limit on how far a bad run can reach.
         </p>
 
       </div>
@@ -349,22 +349,18 @@
             height="3891"
             loading="lazy">
           <figcaption>
-            <strong>Runtime map.</strong> How Monitor boots and routes work: entry
-            (<code>monitor</code> / <code>python -m monitor</code>) through config and
-            modes (REPL, script, prompt, local server, experimental TUI), into core
-            command processing, LLM and tooling, then out to LibTools and external
-            providers. Same shape as <code>docs/ARCHITECTURE.md</code>.
+            The runtime map shows how Monitor boots and routes work. It starts at the entry (<code>monitor</code> / <code>python -m monitor</code>) and passes through config and modes (REPL, script, prompt, local server, experimental TUI) into core command processing and the LLM and tooling layer, then goes out to LibTools and external providers. It has the same shape as <code>docs/ARCHITECTURE.md</code>.
           </figcaption>
         </figure>
 
         <p>
-          From the public repo and <code>docs/ARCHITECTURE.md</code>:
+          The public repo and <code>docs/ARCHITECTURE.md</code> describe the same design in writing.
         </p>
         <ul>
-          <li>Production vs experimental entry points documented and separated</li>
-          <li>Edit tool order and tool profiles spelled out in architecture</li>
-          <li>Runtime safety rails (depth, loop detection, write scoping) documented</li>
-          <li><code>pytest</code> suite and <code>--check-config</code> for secret-safe readiness</li>
+          <li>The production and experimental entry points are documented and kept separate.</li>
+          <li>The architecture doc spells out the edit tool order and the tool profiles.</li>
+          <li>The runtime safety rails (depth, loop detection, write scoping) are documented.</li>
+          <li>The repo has a <code>pytest</code> suite, and <code>--check-config</code> handles secret-safe readiness.</li>
         </ul>
       </div>
     </section>
@@ -372,17 +368,17 @@
       <div class="container">
         <h2>Why I built it this way</h2>
 <p>
-          These boundaries are the same ones I hold in iOS work: clear ownership, real persistence of intent, and something a technical peer can judge quickly.
+          I hold the same boundaries in my iOS work. I want clear ownership and real persistence of intent, and I want a design a technical peer can judge quickly.
         </p>
 <p>
-          I keep an explicit production path so experiments stay labeled. I prefer mechanical edits first so diffs stay reviewable. I use profiles and rails so tool power stays bounded. Same standards I use in iOS work; applied here so I can trust the harness I use every day.
+          An explicit production path keeps experiments labeled, and putting mechanical edits first makes diffs reviewable. Profiles and rails put a bound on tool power. Holding Monitor to my iOS standards is what lets me trust a harness I use every day.
         </p>
       </div>
     </section>
     <section id="links" class="section">
       <div class="container">
         <p>
-          <a href="https://github.com/rdegraci/monitor" target="_blank" rel="noopener noreferrer">github.com/rdegraci/monitor</a>
+          The code lives at <a href="https://github.com/rdegraci/monitor" target="_blank" rel="noopener noreferrer">github.com/rdegraci/monitor</a>, and you can go <a href="/">back home</a> from here.
         </p>
         <div class="d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/monitor" target="_blank" rel="noopener noreferrer">View on GitHub</a>

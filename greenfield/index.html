@@ -275,10 +275,9 @@
     <section class="hero">
       <div class="container">
         <h1>Greenfield</h1>
-        <p class="lede">A spec-first harness for building a new app one verified unit at a time.</p>
+        <p class="lede">Greenfield is a spec-first harness for building a new app one verified unit at a time.</p>
         <p class="meta">
-          Python CLI · OpenAI · stdlib HTTP or FastAPI scaffolds ·
-          <a href="https://github.com/rdegraci/greenfield" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+          It is a Python CLI that uses OpenAI and scaffolds either stdlib HTTP or FastAPI apps. You can <a href="https://github.com/rdegraci/greenfield" target="_blank" rel="noopener noreferrer">read the code on GitHub</a> or skip ahead and <a href="#proof">see the proof</a>.
         </p>
         <div class="cta-row d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/greenfield" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -294,7 +293,7 @@
           Most greenfield LLM flows ask for an app in one breath and hope the pile compiles.
         </p>
 <p>
-          I needed a path from an idea to working code where the plan stays written down, each change stays small enough to review, and verification is something I can run without trusting a chat scrollback. What was missing was a harness that turns intent into specs, scaffolds a starter, and then generates and checks one implementation unit at a time while leaving an inspectable trail.
+          I needed a path from an idea to working code where the plan stays written down and each change stays narrow enough to review. I also needed verification to be something I can run myself, without trusting a chat scrollback. What was missing was a harness that turns intent into specs and scaffolds a starter, then generates and checks one implementation unit at a time while leaving an inspectable trail.
         </p>
       </div>
     </section>
@@ -305,7 +304,7 @@
           Day to day, I wanted to start a project from a short idea and still know what was decided, what was generated, and what still fails verification.
         </p>
 <p>
-          A local Python CLI was enough for that. The LLM helps with intake, planning, and bounded codegen. The harness owns the order of work, the artifacts under <code>.greenfield/</code>, and the verify step.
+          A local Python CLI was enough for that. The LLM helps with intake, planning, and bounded codegen, while the harness owns the order of work and the verify step, along with the artifacts under <code>.greenfield/</code>.
         </p>
       </div>
     </section>
@@ -313,10 +312,10 @@
       <div class="container">
         <h2>What I built</h2>
 <p>
-          Greenfield is a Python CLI for a spec-first greenfield coding harness: LLM-assisted planning, bounded codegen, repair, and deterministic verification. It turns a project idea into structured specs, applies a deterministic scaffold (stdlib HTTP by default, or FastAPI), decomposes work into small implementation units, generates and verifies one unit at a time, and keeps the trail inspectable under <code>.greenfield/</code>.
+          Greenfield is a Python CLI for a spec-first greenfield coding harness that combines LLM-assisted planning, bounded codegen, repair, and deterministic verification. It turns a project idea into structured specs and applies a deterministic scaffold (stdlib HTTP by default, or FastAPI). Then it decomposes the work into small implementation units, generates and verifies one unit at a time, and keeps the trail inspectable under <code>.greenfield/</code>.
         </p>
 <p>
-          You install with <code>pip install -e .</code>, which provides the <code>greenfield</code> console script. Runtime config lives under the user appdir <code>greenfield/</code> as <code>config.yaml</code> plus <code>.env</code> for secrets such as <code>OPENAI_API_KEY</code>. Generated application source sits in the project root and does not depend on <code>.greenfield/</code> at runtime.
+          You install it with <code>pip install -e .</code>, which provides the <code>greenfield</code> console script. Runtime config lives under the user appdir <code>greenfield/</code> as <code>config.yaml</code> plus <code>.env</code> for secrets such as <code>OPENAI_API_KEY</code>. Generated application source sits in the project root and does not depend on <code>.greenfield/</code> at runtime.
         </p>
       </div>
     </section>
@@ -325,22 +324,22 @@
         <h2>Three decisions</h2>
 
         <p>
-          These are the craft bets I would defend in a design review, each one about written intent, bounded change, or evidence you can re-run.
+          These are the three choices I would defend in a design review.
         </p>
 
-        <h3>1. Spec first, then scaffold, then units.</h3>
+        <h3>1. The spec comes first, then the scaffold, then the units.</h3>
 <p>
-          The path is idea into <code>SPEC_IN.md</code>, then <code>project_spec.yaml</code> and <code>system_design.yaml</code>, then <code>scaffold apply</code>, then a work plan of implementation units. I was counting on a written design outliving the chat that produced it, because the failure I care about is inventing an architecture while you are already halfway through generated files. Specs and design artifacts live under <code>.greenfield/specs/</code>, so later <code>inspect</code>, <code>status</code>, and <code>advisor</code> can ground answers in what was actually recorded.
+          The path goes from the idea into <code>SPEC_IN.md</code>, then to <code>project_spec.yaml</code> and <code>system_design.yaml</code>, then through <code>scaffold apply</code> to a work plan of implementation units. I was counting on a written design outliving the chat that produced it, because the failure I care about is inventing an architecture while you are already halfway through generated files. Specs and design artifacts live under <code>.greenfield/specs/</code>, so later <code>inspect</code>, <code>status</code>, and <code>advisor</code> can ground their answers in what was actually recorded.
         </p>
 
-        <h3>2. One unit at a time.</h3>
+        <h3>2. Work happens one unit at a time.</h3>
 <p>
-          <code>work plan</code> breaks the design into bounded units. <code>work run &lt;unit-id&gt;</code> gathers context and runs codegen for that unit alone. I can list units, check latest verification, save checkpoints, and evolve features with <code>feature request</code> / <code>feature plan</code> without treating the whole app as one opaque generation. The bet was that reviewable progress beats a single large write. If a unit fails, repair stays attached to that unit’s traces instead of rewriting the project in one pass.
+          <code>work plan</code> breaks the design into bounded units, and <code>work run &lt;unit-id&gt;</code> gathers context and runs codegen for that unit alone. I can list units, check the latest verification, save checkpoints, and evolve features with <code>feature request</code> / <code>feature plan</code> without treating the whole app as one opaque generation. The bet was that reviewable progress beats a single large write. If a unit fails, repair stays attached to that unit’s traces and does not rewrite the project in one pass.
         </p>
 
         <h3>3. Deterministic verification owns the grade.</h3>
 <p>
-          <code>verify</code> runs configured checks for the active unit, with retry and repair around that loop. When every unit is complete, <code>integrate</code> runs full <code>pytest tests</code>. Verification reports land under <code>.greenfield/verification/</code>. I was counting on a command I can re-run to decide whether a unit is done, because an LLM saying “looks good” is not a merge bar. The model may propose code and repairs; the harness records whether the verify commands passed.
+          <code>verify</code> runs the configured checks for the active unit, with retry and repair around that loop. When every unit is complete, <code>integrate</code> runs the full <code>pytest tests</code>, and verification reports land under <code>.greenfield/verification/</code>. I wanted a command I can re-run to decide whether a unit is done, because an LLM saying “looks good” is not a merge bar. The model may propose code and repairs, and the harness records whether the verify commands passed.
         </p>
 
       </div>
@@ -352,7 +351,7 @@
           You can follow the same command path from the public README and <a href="https://github.com/rdegraci/greenfield/blob/main/docs/QUICK-START.md" target="_blank" rel="noopener noreferrer">docs/QUICK-START.md</a>.
         </p>
         <p>
-          Condensed path from a new directory after install:
+          The condensed path from a new directory after install looks like this.
         </p>
         <pre aria-label="Greenfield condensed command path">greenfield project init
 greenfield spec generate
@@ -366,7 +365,7 @@ greenfield status
 greenfield integrate
 greenfield advisor &quot;What should I do next?&quot;</pre>
         <p>
-          From the public repo you can also confirm: Python 3.12+, OpenAI key for LLM-backed paths, config under the user appdir, artifacts under <code>.greenfield/</code> (specs, runs, reports, state, traces, verification), and <code>inspect</code> for previewing those artifacts. Operator detail lives in <a href="https://github.com/rdegraci/greenfield/blob/main/docs/OPERATOR-GUIDE.md" target="_blank" rel="noopener noreferrer">docs/OPERATOR-GUIDE.md</a>.
+          The public repo also confirms that Greenfield needs Python 3.12+ and an OpenAI key for the LLM-backed paths. Config sits under the user appdir, artifacts sit under <code>.greenfield/</code> (specs, runs, reports, state, traces, verification), and <code>inspect</code> previews those artifacts. Operator detail lives in <a href="https://github.com/rdegraci/greenfield/blob/main/docs/OPERATOR-GUIDE.md" target="_blank" rel="noopener noreferrer">docs/OPERATOR-GUIDE.md</a>.
         </p>
 
         <figure class="proof-figure">
@@ -377,12 +376,7 @@ greenfield advisor &quot;What should I do next?&quot;</pre>
             height="6572"
             loading="lazy">
           <figcaption>
-            <strong>Runtime map.</strong> Entry (<code>greenfield</code>) through
-            user-appdir config, then spec → design → scaffold → bounded
-            <code>work run</code> units, with deterministic <code>verify</code> /
-            <code>integrate</code>. LLM helps intake, planning, codegen, and
-            advisor. Durable trail under <code>.greenfield/</code>; app source
-            lives in the project root.
+            The runtime map starts at Entry (<code>greenfield</code>) and goes through user-appdir config, then spec → design → scaffold → bounded <code>work run</code> units, with deterministic <code>verify</code> / <code>integrate</code>. The LLM helps with intake, planning, codegen, and advisor. The durable trail stays under <code>.greenfield/</code>, and app source lives in the project root.
           </figcaption>
         </figure>
       </div>
@@ -391,17 +385,17 @@ greenfield advisor &quot;What should I do next?&quot;</pre>
       <div class="container">
         <h2>Why I built it this way</h2>
 <p>
-          These boundaries are the same ones I hold when the cost of a wrong turn is a repo full of generated code I cannot explain.
+          I hold these boundaries whenever the cost of a wrong turn is a repo full of generated code I cannot explain.
         </p>
 <p>
-          I write the spec before I generate the bulk of the app. I change one unit at a time so a failure stays local. I let verify commands decide whether that unit is done. If you are going to use an LLM on a greenfield project, the plan and the grade should still be something you can open on disk.
+          I write the spec before I generate the bulk of the app, and I change one unit at a time so a failure stays local. Verify commands decide whether each unit is done. If I am going to use an LLM on a greenfield project, I want the plan and the grade to be files I can open on disk.
         </p>
       </div>
     </section>
     <section id="links" class="section">
       <div class="container">
         <p>
-          <a href="https://github.com/rdegraci/greenfield" target="_blank" rel="noopener noreferrer">github.com/rdegraci/greenfield</a>
+          The code lives at <a href="https://github.com/rdegraci/greenfield" target="_blank" rel="noopener noreferrer">github.com/rdegraci/greenfield</a>, and you can go <a href="/">back home</a> from here.
         </p>
         <div class="d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/greenfield" target="_blank" rel="noopener noreferrer">View on GitHub</a>
