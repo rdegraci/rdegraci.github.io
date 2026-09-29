@@ -262,9 +262,9 @@
     <section class="hero">
       <div class="container">
         <h1>Maximus</h1>
-        <p class="lede">An LLM harness for contest ML, with a human on the train gate.</p>
+        <p class="lede">Maximus is an LLM harness for contest ML, with a human on the train gate.</p>
         <p class="meta">
-          Python · CLI + MCP · gated train · <a href="https://github.com/rdegraci/maximus" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+          It is a Python CLI plus an MCP server, and training is gated. You can <a href="https://github.com/rdegraci/maximus" target="_blank" rel="noopener noreferrer">read the code on GitHub</a> or skip ahead and <a href="#proof">see the proof</a>.
         </p>
         <div class="cta-row d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/maximus" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -277,7 +277,7 @@
       <div class="container">
         <h2>The problem</h2>
 <p>
-          Contest work with a coding agent usually degrades into the same mess: you paste logs into chat, the model suggests a tweak, and then either you babysit every train yourself or you let it fire runs unsupervised. I have done both. One wastes my attention; the other burns compute I meant to approve. I wanted a fixed loop where the agent does the grunt work and I still own when training happens.
+          Contest work with a coding agent usually degrades into the same mess. You paste logs into chat and the model suggests a tweak, and then either you babysit every train yourself or you let it fire runs unsupervised. I have done both. Babysitting wastes my attention, and unsupervised runs burn compute I meant to approve. I wanted a fixed loop where the agent does the grunt work and I still own when training happens.
         </p>
       </div>
     </section>
@@ -285,10 +285,10 @@
       <div class="container">
         <h2>Why I built it</h2>
 <p>
-          Day to day, I wanted the agent to iterate on contest models without me pasting logs by hand, and without unsupervised compute burn.
+          Day to day, I wanted the agent to iterate on contest models without me pasting logs by hand and without burning compute unsupervised.
         </p>
 <p>
-          The shape is fixed on purpose: propose → (you approve train) → eval → log → improve. The agent may request a train. I run it.
+          The shape is fixed on purpose, and it runs propose → (you approve train) → eval → log → improve. The agent may request a train, but I am the one who runs it.
         </p>
       </div>
     </section>
@@ -296,13 +296,13 @@
       <div class="container">
         <h2>What I built</h2>
 <p>
-          Maximus is a Python harness around competition folders. There is a CLI for <code>train</code>, <code>eval</code>, <code>submit</code>, <code>status</code>, <code>log</code>, and <code>new</code>, plus an MCP server so a Cursor agent can check status, read logs, make scoped edits, run eval, prep a local submission, and call <code>request_train</code>. Training stays on the human path: the agent writes a proposal; I run <code>maximus train</code>. MCP <code>train</code> is refused unless <code>MAXIMUS_ALLOW_TRAIN=1</code>, and I would rather keep that flag off.
+          Maximus is a Python harness around competition folders. It has a CLI for <code>train</code>, <code>eval</code>, <code>submit</code>, <code>status</code>, <code>log</code>, and <code>new</code>, plus an MCP server that lets a Cursor agent check status, read logs, make scoped edits, run eval, prep a local submission, and call <code>request_train</code>. Training stays on the human path, so the agent writes a proposal and I run <code>maximus train</code>. MCP <code>train</code> is refused unless <code>MAXIMUS_ALLOW_TRAIN=1</code>, and I prefer to keep that flag off.
         </p>
 <p>
-          Each successful eval appends to an experiment log (<code>experiments/log.md</code> and <code>history.jsonl</code>) under a strict <code>metrics.json</code> contract: a finite float <code>metric</code>, with soft or partial parses failing. A built-in <code>toy_binary</code> competition proves the loop on CPU (logistic regression, optional random forest, ROC-AUC). <code>maximus new</code> scaffolds another contest from a template. Real contests land later as new folders; the MVP does not upload to DrivenData or Kaggle, and it is not a GEMS solution or AutoML that trains in a loop on its own.
+          Each successful eval appends to an experiment log (<code>experiments/log.md</code> and <code>history.jsonl</code>) under a strict <code>metrics.json</code> contract, which requires a finite float <code>metric</code> and fails soft or partial parses. A built-in <code>toy_binary</code> competition proves the loop on CPU (logistic regression, optional random forest, ROC-AUC), and <code>maximus new</code> scaffolds another contest from a template. Actual contests land later as new folders. The MVP does not upload to DrivenData or Kaggle, and it is not a GEMS solution or an AutoML system that trains in a loop on its own.
         </p>
 <p>
-          This is the primary MVP. Future changes are already in the works toward the final shape: enough of the loop to use and trust today, without pretending the product is finished.
+          This is the primary MVP, and future changes toward the final shape are already in the works. It has enough of the loop to use and trust today, and I am not pretending the product is finished.
         </p>
       </div>
     </section>
@@ -311,22 +311,22 @@
         <h2>Three decisions</h2>
 
         <p>
-          These are the craft bets I would defend in a design review, each one about honesty, ownership, or maintainability.
+          These are the three choices I would defend in a design review.
         </p>
 
-        <h3>1. You approve train; the agent only asks.</h3>
+        <h3>1. You approve train, and the agent only asks.</h3>
 <p>
-          The agent inspects, makes one change, and calls <code>request_train</code>. That writes a pending proposal. I review it, then run <code>maximus train</code> myself. Human owns train and any cloud spend. I was counting on that gate holding when the agent gets eager, because the failure I care about is unsupervised compute I meant to approve. There are no autonomous multi-train loops on the default path.
+          The agent inspects, makes one change, and calls <code>request_train</code>, which writes a pending proposal. I review it and then run <code>maximus train</code> myself, so the human owns train and any cloud spend. I was counting on that gate holding when the agent gets eager, because the failure I care about is unsupervised compute I meant to approve. The default path has no autonomous multi-train loops.
         </p>
 
-        <h3>2. MCP for grunt work, not for burning GPUs.</h3>
+        <h3>2. MCP is for grunt work, not for burning GPUs.</h3>
 <p>
-          Status, logs, scoped file I/O, eval, submit prep, and diagnose are agent tools. Train is gated. Per competition, eval can be locked down too if it is expensive. The agent edits only <code>allowed_edit_globs</code>, one change per cycle. I was counting on scoped tools so the agent can improve without owning the spend. If train rides the same MCP path as status, the harness stops being something I trust with a GPU bill.
+          Status, logs, scoped file I/O, eval, submit prep, and diagnose are agent tools. Train is gated, and per competition, eval can be locked down too if it is expensive. The agent edits only <code>allowed_edit_globs</code>, one change per cycle. The bet was that scoped tools let the agent improve things without owning the spend. If train rode the same MCP path as status, I could no longer trust the harness with a GPU bill.
         </p>
 
-        <h3>3. A hard metrics contract and a real log.</h3>
+        <h3>3. Eval follows a hard metrics contract and writes an actual log.</h3>
 <p>
-          Eval has to leave <code>artifacts/metrics.json</code> with a numeric <code>metric</code>. Soft or partial parses fail. Successful runs land in the experiment log so the next propose step has evidence, not a chat scrollback I copied by hand. I was counting on a log a peer can read later. If the metric is fuzzy, the improve step is guessing.
+          Eval has to leave <code>artifacts/metrics.json</code> with a numeric <code>metric</code>, and soft or partial parses fail. Successful runs land in the experiment log, so the next propose step has evidence to work from and I am not copying chat scrollback by hand. The log has to be something a peer can read later, because if the metric is fuzzy, the improve step is guessing.
         </p>
 
       </div>
@@ -335,7 +335,7 @@
       <div class="container">
         <h2>Proof</h2>
         <p>
-          You can follow the same loop the harness enforces: propose, approve train, eval, log, improve.
+          You can follow the same loop the harness enforces, from propose through approve train, eval, and log to improve.
         </p>
 
         <figure class="proof-figure">
@@ -346,16 +346,12 @@
             height="3956"
             loading="lazy">
           <figcaption>
-            <strong>Runtime map.</strong> Fixed propose → (you approve train) →
-            eval → log → improve. The agent path is MCP (status, scoped edits,
-            <code>request_train</code>, eval). Train stays on the human CLI unless
-            <code>MAXIMUS_ALLOW_TRAIN=1</code>. This diagram is the MVP shape; more
-            is planned toward the final product.
+            The runtime map shows the fixed propose → (you approve train) → eval → log → improve loop. The agent path is MCP (status, scoped edits, <code>request_train</code>, eval), and train stays on the human CLI unless <code>MAXIMUS_ALLOW_TRAIN=1</code>. The diagram shows the MVP shape, and more is planned toward the final product.
           </figcaption>
         </figure>
 
         <p>
-          From the public repo (<code>README</code>, <code>docs/QUICK-START.md</code>, <code>docs/OPERATOR-GUIDE.md</code>), the same story shows up in writing: the fixed propose → approve-train → eval → log → improve loop; MCP <code>train</code> refused unless <code>MAXIMUS_ALLOW_TRAIN=1</code>; the <code>toy_binary</code> CPU path for train, eval, and status; the experiment log plus strict <code>metrics.json</code> (<code>metric</code> as a finite float); and guardrails (one change per cycle, allowed edit globs, no contest-site upload in the MVP).
+          The public repo (<code>README</code>, <code>docs/QUICK-START.md</code>, <code>docs/OPERATOR-GUIDE.md</code>) tells the same story in writing. It documents the fixed propose → approve-train → eval → log → improve loop and the rule that MCP <code>train</code> is refused unless <code>MAXIMUS_ALLOW_TRAIN=1</code>. It also covers the <code>toy_binary</code> CPU path for train, eval, and status, the experiment log plus strict <code>metrics.json</code> (<code>metric</code> as a finite float), and the guardrails (one change per cycle, allowed edit globs, no contest-site upload in the MVP).
         </p>
       </div>
     </section>
@@ -363,17 +359,17 @@
       <div class="container">
         <h2>Why I built it this way</h2>
 <p>
-          These boundaries are the same ones I hold elsewhere: clear ownership, real evidence, and something a technical peer can judge quickly.
+          I hold the same boundaries elsewhere. I want clear ownership and real evidence, and I want a design a technical peer can judge quickly.
         </p>
 <p>
-          If an agent is going to help on contest ML, it should not get unsupervised compute. It can propose, edit within the globs, eval, and log. I keep the train gate. That boundary is the product, and this MVP is where that product starts, with more shape still coming.
+          If an agent is going to help on contest ML, it should not get unsupervised compute. It can propose, edit within the globs, eval, and log, while I keep the train gate. That boundary is the product, and this MVP is where the product starts, with more shape still coming.
         </p>
       </div>
     </section>
     <section id="links" class="section">
       <div class="container">
         <p>
-          <a href="https://github.com/rdegraci/maximus" target="_blank" rel="noopener noreferrer">github.com/rdegraci/maximus</a>
+          The code lives at <a href="https://github.com/rdegraci/maximus" target="_blank" rel="noopener noreferrer">github.com/rdegraci/maximus</a>, and you can go <a href="/">back home</a> from here.
         </p>
         <div class="d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/maximus" target="_blank" rel="noopener noreferrer">View on GitHub</a>

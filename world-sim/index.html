@@ -275,10 +275,9 @@
     <section class="hero">
       <div class="container">
         <h1>World-Sim</h1>
-        <p class="lede">A local narrative simulation with split storage, grounded play modes, and a companion World Builder.</p>
+        <p class="lede">World-Sim is a local narrative simulation with split storage, grounded play modes, and a companion World Builder.</p>
         <p class="meta">
-          Python CLI · SQLite + ChromaDB · multi-provider LLM ·
-          <a href="https://github.com/rdegraci/world-sim" target="_blank" rel="noopener noreferrer">Code on GitHub</a>
+          It is a Python CLI that stores state in SQLite and ChromaDB and works with multiple LLM providers. You can <a href="https://github.com/rdegraci/world-sim" target="_blank" rel="noopener noreferrer">read the code on GitHub</a> or skip ahead and <a href="#proof">see the proof</a>.
         </p>
         <div class="cta-row d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/world-sim" target="_blank" rel="noopener noreferrer">View on GitHub</a>
@@ -294,7 +293,7 @@
           Most LLM “worlds” keep structure and prose in one blurry store, so a chat turn can invent a room that never existed, or a builder can write layout without anyone approving the plan.
         </p>
 <p>
-          I needed a local simulation where structured state answers what exists and where it is, canonical lore answers what it means, and play, admin edit, and sandboxed chat stay in separate modes. What was missing was an MVP platform with appdir bootstrap, auth, a Quiet Manor seed, and a Builder that proposes structure without unsupervised apply.
+          I needed a local simulation where structured state answers what exists and where it is, and canonical lore answers what it means. Play, admin edit, and sandboxed chat also had to stay in separate modes. What was missing was an MVP platform with appdir bootstrap, auth, a Quiet Manor seed, and a Builder that proposes structure without unsupervised apply.
         </p>
       </div>
     </section>
@@ -302,10 +301,10 @@
       <div class="container">
         <h2>Why I built it</h2>
 <p>
-          Day to day, I wanted to walk a seeded manor, talk to an NPC when present, edit canon as admin through drafts, and grow the world from approved lore with an explicit apply step.
+          Day to day, I wanted to walk a seeded manor and talk to an NPC when one is present. As admin, I also needed to edit canon through drafts and grow the world from approved lore with an explicit apply step.
         </p>
 <p>
-          Packaged commands were enough for that: <code>world-sim</code> for the session shell, <code>world-builder</code> for structure from lore, and later <code>world-sim-serve</code> for thin multi-session web. Providers default to Grok, with OpenAI and Anthropic available, and <code>WORLD_SIM_LLM=fake</code> for offline play.
+          Packaged commands were enough for that. <code>world-sim</code> runs the session shell, <code>world-builder</code> builds structure from lore, and <code>world-sim-serve</code> came later for thin multi-session web. Providers default to Grok, OpenAI and Anthropic are available, and <code>WORLD_SIM_LLM=fake</code> covers offline play.
         </p>
       </div>
     </section>
@@ -313,13 +312,13 @@
       <div class="container">
         <h2>What I built</h2>
 <p>
-          World-Sim is a Python narrative simulation. Phase 1 MVP (slices 1 through 5) is complete: appdir bootstrap, <code>.env</code> / <code>config.yaml</code>, auth, SQLite structured state plus ChromaDB canonical lore, Quiet Manor with Mrs. Hale, grounded <code>play_mode</code>, admin <code>edit_mode</code>, admin sandboxed <code>chat_mode</code>, and the World Builder companion (propose / preview / validate / apply, including <code>propose_from_brief</code>).
+          World-Sim is a Python narrative simulation, and its Phase 1 MVP (slices 1 through 5) is complete. That MVP includes appdir bootstrap, <code>.env</code> / <code>config.yaml</code>, auth, SQLite structured state plus ChromaDB canonical lore, and Quiet Manor with Mrs. Hale. It also includes grounded <code>play_mode</code>, admin <code>edit_mode</code>, admin sandboxed <code>chat_mode</code>, and the World Builder companion (propose / preview / validate / apply, including <code>propose_from_brief</code>).
         </p>
 <p>
-          Later phases in the same repo add <code>WorldAuthority</code> over play mutations, multi-session WebSockets with presence, public <code>say</code>, and a schematic map, contested co-op via a serial mutation queue and exclusive Player Chat leases, plus optional memory, retrieval, and lore_guard (all default off). Dynamic frontier expansion also defaults off. Deferred work still includes nicer web polish, scale-out beyond small co-op, broad CRUD, inventory handoff in Player Chat, and unsupervised Builder apply (Exp-007).
+          Later phases in the same repo add <code>WorldAuthority</code> over play mutations, multi-session WebSockets with presence, public <code>say</code>, and a schematic map. They also add contested co-op through a serial mutation queue and exclusive Player Chat leases, plus optional memory, retrieval, and <code>lore_guard</code>, which all default off. Dynamic frontier expansion also defaults off. Deferred work still includes nicer web polish, scale-out beyond small co-op, broad CRUD, inventory handoff in Player Chat, and unsupervised Builder apply (Exp-007).
         </p>
 <p>
-          You install with <code>pip install -e .</code> (Python 3.11+), run <code>world-sim</code> once to bootstrap, set keys in <code>.env</code>, then play or serve.
+          You install it with <code>pip install -e .</code> (Python 3.11+) and run <code>world-sim</code> once to bootstrap. Then you set keys in <code>.env</code> and either play or serve.
         </p>
       </div>
     </section>
@@ -328,22 +327,22 @@
         <h2>Three decisions</h2>
 
         <p>
-          These are the craft bets I would defend in a design review, each one about storage honesty, mode boundaries, or who is allowed to write structure.
+          These are the three choices I would defend in a design review.
         </p>
 
-        <h3>1. SQLite for what exists; Chroma for what it means.</h3>
+        <h3>1. SQLite holds what exists, and Chroma holds what it means.</h3>
 <p>
-          SQLite holds users, characters, rooms, items, NPCs, sessions, relationships, runtime state, and lore-key references. ChromaDB holds canonical lore text (system, room, item, NPC). Play-tool mutations and authoritative structured reads go through <code>WorldAuthority</code> (SQLite-backed via <code>WorldStore</code> today). I was counting on that split so a narration pass cannot quietly invent durable layout, and so lore can be revised without rewriting every row that points at a key. The grounding hierarchy stays system to room to item to NPC to mutable runtime on purpose.
+          SQLite holds users, characters, rooms, items, NPCs, sessions, relationships, runtime state, and lore-key references. ChromaDB holds canonical lore text (system, room, item, NPC). Play-tool mutations and authoritative structured reads go through <code>WorldAuthority</code> (SQLite-backed via <code>WorldStore</code> today). I was counting on that split so a narration pass cannot invent durable layout unnoticed, and so lore can be revised without rewriting every row that points at a key. The grounding hierarchy runs from system to room to item to NPC to mutable runtime on purpose.
         </p>
 
         <h3>2. Play, edit, and chat stay separate modes.</h3>
 <p>
-          <code>play_mode</code> is normal grounded gameplay. <code>edit_mode</code> is admin-only constrained canon management (including draft create/revise paths that wait on <code>approve_draft</code>). <code>chat_mode</code> is admin-only sandboxed NPC conversation and is intended to stay non-canonical: it should not mutate world state or persistent NPC memory. In-play Player Chat (<code>talk to</code> / <code>end_chat</code>) is conversation-only for a present NPC, with exclusive leases under contested co-op. I was counting on mode boundaries to keep rehearsal and canon edits from leaking into play state. Mixing those surfaces is how worlds lose integrity.
+          <code>play_mode</code> is normal grounded gameplay. <code>edit_mode</code> is admin-only constrained canon management, including draft create/revise paths that wait on <code>approve_draft</code>. <code>chat_mode</code> is admin-only sandboxed NPC conversation and is intended to stay non-canonical, so it should not mutate world state or persistent NPC memory. In-play Player Chat (<code>talk to</code> / <code>end_chat</code>) is conversation-only for a present NPC, with exclusive leases under contested co-op. The mode boundaries are there to keep rehearsal and canon edits from leaking into play state, because mixing those surfaces is how worlds lose integrity.
         </p>
 
-        <h3>3. Builder proposes; humans apply.</h3>
+        <h3>3. Builder proposes, and humans apply.</h3>
 <p>
-          <code>world-builder</code> shares the same appdir, config, SQLite, and Chroma store. It seeds and validates structure from approved lore. Proposals stay drafts until you explicitly <code>apply_seed_plan</code> (preview and validate first; apply asks you to type <code>apply</code> or pass <code>--yes</code>). Briefs supply intent, not silent canon. If named lore keys are missing, Builder fails closed. The bet was that unsupervised structure writes are an experiment (Exp-007), not MVP. Play narration never creates rooms; only stub realize (when dynamic expansion is on) or Builder apply writes structure.
+          <code>world-builder</code> shares the same appdir, config, SQLite, and Chroma store, and it seeds and validates structure from approved lore. Proposals stay drafts until you explicitly <code>apply_seed_plan</code>. You preview and validate first, and apply asks you to type <code>apply</code> or pass <code>--yes</code>. Briefs supply intent and never become silent canon, and if named lore keys are missing, Builder fails closed. The bet was that unsupervised structure writes belong in an experiment (Exp-007) and stay out of the MVP. Play narration never creates rooms, and only stub realize (when dynamic expansion is on) or Builder apply writes structure.
         </p>
 
       </div>
@@ -359,10 +358,10 @@ WORLD_SIM_LLM=fake world-sim
 WORLD_SIM_LLM=fake world-sim-serve --host 127.0.0.1 --port 8765
 world-builder</pre>
         <p>
-          In play after login (Quiet Manor foyer): <code>look</code>, <code>go north</code>, <code>take brass key</code>, <code>talk to Mrs. Hale</code>, <code>end_chat</code>. Admin: <code>mode edit</code> then draft lore commands and <code>approve_draft</code>. Builder: <code>propose_from_brief examples/seed-brief-cellar.yaml</code>, <code>preview_seed_plan</code>, <code>validate_world</code>, <code>apply_seed_plan</code>.
+          In play after login, starting in the Quiet Manor foyer, you can run <code>look</code>, <code>go north</code>, <code>take brass key</code>, <code>talk to Mrs. Hale</code>, and <code>end_chat</code>. As admin, you run <code>mode edit</code>, then the draft lore commands and <code>approve_draft</code>. In Builder, the sequence is <code>propose_from_brief examples/seed-brief-cellar.yaml</code>, <code>preview_seed_plan</code>, <code>validate_world</code>, and <code>apply_seed_plan</code>.
         </p>
         <p>
-          From the public repo you can also confirm: providers Grok / OpenAI / Anthropic, optional flags default off (<code>world.dynamic_expansion</code>, <code>memory.enabled</code>, <code>retrieval.enabled</code>, <code>player_chat.lore_guard</code>), and the deferred list for unsupervised apply and scale-out.
+          The public repo also confirms the Grok / OpenAI / Anthropic providers and that the optional flags default off (<code>world.dynamic_expansion</code>, <code>memory.enabled</code>, <code>retrieval.enabled</code>, <code>player_chat.lore_guard</code>). It lists the deferred work for unsupervised apply and scale-out as well.
         </p>
 
         <figure class="proof-figure">
@@ -373,10 +372,7 @@ world-builder</pre>
             height="4932"
             loading="lazy">
           <figcaption>
-            <strong>Runtime map.</strong> Entry through appdir config and auth into
-            play / edit / chat modes, with <code>WorldAuthority</code> over
-            mutations, SQLite versus Chroma split storage, and World Builder
-            propose, preview, validate, then human apply.
+            The runtime map runs from entry through appdir config and auth into the play / edit / chat modes, with <code>WorldAuthority</code> over mutations and SQLite versus Chroma split storage. World Builder then goes through propose, preview, and validate before a human applies the plan.
           </figcaption>
         </figure>
       </div>
@@ -385,17 +381,17 @@ world-builder</pre>
       <div class="container">
         <h2>Why I built it this way</h2>
 <p>
-          These boundaries are the same ones I hold when a simulation has to survive more than one session: durable structure, durable meaning, and an apply step a human can refuse.
+          I hold these boundaries whenever a simulation has to survive more than one session. Structure and meaning both have to be durable, and the apply step has to be one a human can refuse.
         </p>
 <p>
-          I keep SQLite and Chroma apart so existence and meaning do not collapse into one blob. I keep play, edit, and chat in separate modes so rehearsal cannot rewrite the manor by accident. I keep Builder on propose and apply so layout stays a decision. If you are going to simulate a world with an LLM in the loop, the storage split and the apply gate should still be something you can explain to a peer in under two minutes.
+          Keeping SQLite and Chroma apart stops existence and meaning from collapsing into one blob, and separate modes for play, edit, and chat mean rehearsal cannot rewrite the manor by accident. Builder stays on propose and apply so layout remains a decision. If I am going to simulate a world with an LLM in the loop, I want to be able to explain the storage split and the apply gate to a peer in under two minutes.
         </p>
       </div>
     </section>
     <section id="links" class="section">
       <div class="container">
         <p>
-          <a href="https://github.com/rdegraci/world-sim" target="_blank" rel="noopener noreferrer">github.com/rdegraci/world-sim</a>
+          The code lives at <a href="https://github.com/rdegraci/world-sim" target="_blank" rel="noopener noreferrer">github.com/rdegraci/world-sim</a>, and you can go <a href="/">back home</a> from here.
         </p>
         <div class="d-flex flex-wrap gap-2 mt-4">
           <a class="btn btn-accent" href="https://github.com/rdegraci/world-sim" target="_blank" rel="noopener noreferrer">View on GitHub</a>
