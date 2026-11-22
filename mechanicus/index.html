@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mechanicus — Rodney Degracia</title>
+  <meta name="description" content="Case study: Mechanicus — a coding REPL that makes a model's tests fail before the model is allowed to write any code. Python 3.10+ CLI · OpenAI Responses API · SQLite.">
+  <link rel="canonical" href="https://rodneydegracia.com/mechanicus/">
+  <meta property="og:title" content="Mechanicus — Rodney Degracia">
+  <meta property="og:description" content="Case study: Mechanicus — a coding REPL that makes a model's tests fail before the model is allowed to write any code. Python 3.10+ CLI · OpenAI Responses API · SQLite.">
+  <meta property="og:url" content="https://rodneydegracia.com/mechanicus/">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="Rodney Degracia">
+  <meta property="og:image" content="https://rodneydegracia.com/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="627">
+  <meta property="og:image:alt" content="Rodney Degracia, Senior iOS Engineer | Swift/SwiftUI + AI Tools (Cursor, Claude, Codex), rodneydegracia.com">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Mechanicus — Rodney Degracia">
+  <meta name="twitter:description" content="Case study: Mechanicus — a coding REPL that makes a model's tests fail before the model is allowed to write any code. Python 3.10+ CLI · OpenAI Responses API · SQLite.">
+  <meta name="twitter:image" content="https://rodneydegracia.com/assets/og-image.png">
+  <meta name="twitter:image:alt" content="Rodney Degracia, Senior iOS Engineer | Swift/SwiftUI + AI Tools (Cursor, Claude, Codex), rodneydegracia.com">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,700;1,9..40,400&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #1a2332;
+      --muted: #5a6577;
+      --surface: #f7f4ef;
+      --accent: #0d6e6e;
+      --accent-hover: #0a5555;
+      --line: rgba(26, 35, 50, 0.12);
+    }
+
+    body {
+      font-family: "DM Sans", system-ui, sans-serif;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse 80% 50% at 10% -10%, rgba(13, 110, 110, 0.12), transparent 55%),
+        radial-gradient(ellipse 60% 40% at 90% 0%, rgba(26, 35, 50, 0.06), transparent 50%),
+        linear-gradient(180deg, #fbfaf7 0%, var(--surface) 45%, #efebe3 100%);
+      min-height: 100vh;
+    }
+
+    .brand-name,
+    h1, h2, h3 {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-weight: 400;
+      letter-spacing: 0;
+    }
+
+    .navbar {
+      background: rgba(251, 250, 247, 0.85);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .navbar-brand {
+      font-family: "Instrument Serif", Georgia, serif;
+      font-size: 1.35rem;
+      color: var(--ink) !important;
+    }
+
+    .nav-link-custom {
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .nav-link-custom:hover,
+    .nav-link-custom.active {
+      color: var(--accent);
+    }
+
+    .hero {
+      padding: 6rem 0 4rem;
+    }
+
+    .hero h1 {
+      font-size: clamp(2.5rem, 6vw, 3.75rem);
+      line-height: 1.1;
+      margin-bottom: 1rem;
+    }
+
+    .hero .lede {
+      font-family: "DM Sans", system-ui, sans-serif;
+      font-size: clamp(1.1rem, 2vw, 1.35rem);
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 1.25rem;
+      max-width: 64rem;
+    }
+
+    .hero .meta {
+      font-size: 1rem;
+      line-height: 1.7;
+      color: var(--muted);
+      max-width: 64rem;
+    }
+
+    .hero .meta a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .hero .meta a:hover {
+      text-decoration: underline;
+    }
+
+    .btn-accent {
+      --bs-btn-color: #fff;
+      --bs-btn-bg: var(--accent);
+      --bs-btn-border-color: var(--accent);
+      --bs-btn-hover-color: #fff;
+      --bs-btn-hover-bg: var(--accent-hover);
+      --bs-btn-hover-border-color: var(--accent-hover);
+      --bs-btn-active-color: #fff;
+      --bs-btn-active-bg: var(--accent-hover);
+      --bs-btn-active-border-color: var(--accent-hover);
+      padding: 0.65rem 1.35rem;
+      font-weight: 500;
+    }
+
+    .section {
+      padding: 4.5rem 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .section h2 {
+      font-size: clamp(1.85rem, 4vw, 2.5rem);
+      margin-bottom: 1.5rem;
+    }
+
+    .section h3 {
+      font-size: clamp(1.35rem, 3vw, 1.65rem);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .section h3:first-of-type {
+      margin-top: 0;
+    }
+
+    .section p {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 64rem;
+    }
+
+    .section p strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .section a:not(.btn) {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .section a:not(.btn):hover {
+      text-decoration: underline;
+    }
+
+    .section ul {
+      font-size: 1.1rem;
+      line-height: 1.8;
+      color: var(--muted);
+      max-width: 64rem;
+      padding-left: 1.25rem;
+    }
+
+    .section ul li {
+      margin-bottom: 0.5rem;
+    }
+
+    code {
+      color: var(--ink);
+      background: rgba(26, 35, 50, 0.06);
+      padding: 0.1em 0.35em;
+      font-size: 0.92em;
+    }
+
+    .section pre {
+      max-width: 64rem;
+      padding: 1rem 1.15rem;
+      overflow-x: auto;
+      font-size: 0.9rem;
+      line-height: 1.55;
+      color: #e8eef5;
+      background: #1a2332;
+      border: 1px solid var(--line);
+      border-radius: 0.35rem;
+      margin: 0 0 1.5rem;
+    }
+
+    .proof-figure {
+      max-width: 64rem;
+      margin: 0 0 2rem;
+    }
+
+    .proof-figure img {
+      display: block;
+      width: 100%;
+      max-width: 100%;
+      height: auto;
+      border: 1px solid var(--line);
+      background: #1a2332;
+    }
+
+    .proof-figure figcaption {
+      margin-top: 0.75rem;
+      font-size: 0.95rem;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    footer {
+      border-top: 1px solid var(--line);
+      padding: 2rem 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    footer a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    footer a:hover {
+      text-decoration: underline;
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .hero h1,
+      .hero .lede,
+      .hero .meta,
+      .hero .cta-row {
+        animation: rise 0.7s ease both;
+      }
+
+      .hero .lede { animation-delay: 0.08s; }
+      .hero .meta { animation-delay: 0.16s; }
+      .hero .cta-row { animation-delay: 0.24s; }
+    }
+
+    @keyframes rise {
+      from {
+        opacity: 0;
+        transform: translateY(12px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar sticky-top">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <a class="navbar-brand" href="/">rodneydegracia.com</a>
+      <div class="d-flex gap-3">
+        <a class="nav-link-custom" href="/#about">About</a>
+        <a class="nav-link-custom active" href="/#projects">Projects</a>
+      </div>
+    </div>
+  </nav>
+
+  <main>
+    <section class="hero">
+      <div class="container">
+        <h1>Mechanicus</h1>
+        <p class="lede">Mechanicus is a coding REPL that makes a model's tests fail before the model is allowed to write any code.</p>
+        <p class="meta">
+          It is a Python 3.10+ CLI that calls the OpenAI Responses API and keeps each project's specs and generations in SQLite at <code>.mechanicus/seed.db</code>. You can <a href="https://github.com/rdegraci/mechanicus" target="_blank" rel="noopener noreferrer">read the code on GitHub</a> or skip ahead and <a href="#proof">see the proof</a>.
+        </p>
+        <div class="cta-row d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/mechanicus" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="#proof">See the proof</a>
+        </div>
+      </div>
+    </section>
+
+    <section id="problem" class="section">
+      <div class="container">
+        <h2>The problem</h2>
+        <p>
+          Tests that a model writes for its own code can pass without proving anything.
+        </p>
+        <p>
+          Every way that happens shows up as a check in the harness code. A suite can pass against an empty module, which means it never needed the behavior in the first place. It can make trivial asserts, or it can never import the implementation at all. When the behavior depends on another module, the tests can monkeypatch that module and never exercise it. A later generation can also pass the same tests with more lines than the version already in use. What I wanted was a loop where the model writes both the tests and the code, and the code still has to clear checks that the model does not control.
+        </p>
+      </div>
+    </section>
+    <section id="why-built" class="section">
+      <div class="container">
+        <h2>Why I built it</h2>
+        <p>
+          The generator prompt in <code>codegen.py</code> spells out what I was after. The system should be able to generate and improve parts of itself while remaining recoverable, and self-modification is allowed only through the path of spec, regenerate, test, and explicit adopt.
+        </p>
+        <p>
+          A local REPL was enough for that. I describe a behavior in one line at the prompt, and Mechanicus owns the order of work from there. The repository also ships a <a href="https://github.com/rdegraci/mechanicus/blob/main/docs/SELF-MODIFY-GUIDE.md" target="_blank" rel="noopener noreferrer">self-modify guide</a> for running Mechanicus on its own source.
+        </p>
+      </div>
+    </section>
+    <section id="built" class="section">
+      <div class="container">
+        <h2>What I built</h2>
+        <p>
+          Mechanicus is an interactive REPL built on prompt_toolkit, and it can also replay a file of slash commands with <code>mechanicus -s FILE</code>. The core loop uses four commands. <code>/spec greet Return the word hello</code> stores the behavior, writes the tests and a separate behavioral check, proves they fail, and then asks the model for the smallest working implementation. <code>/adopt greet</code> runs pytest on that generation and marks it adopted when the tests pass. <code>/show greet</code> prints the spec with its adopt and Jev status, and <code>/generate greet</code> writes <code>greet.py</code> and <code>tests/test_greet.py</code> into the startup directory.
+        </p>
+        <p>
+          A planning layer sits on top of that loop. <code>/plan</code> writes one <code>.module</code> file per module, <code>/build</code> turns those files into adopted Python, and <code>/add</code> updates the modules that a new feature touches. A project can also target a Swift package, and then adoption runs <code>swift test</code> in place. When <code>TYPESAFE_API_KEY</code> is set, a TypeSafe model called Jev checks plan coverage and whether the tests require calls into adopted dependencies. When the key is empty, Mechanicus records the Jev result as skipped, and a failed Jev call is never treated as approval.
+        </p>
+        <p>
+          Model names and reasoning effort live in <code>config.yaml</code>, and <code>OPENAI_API_KEY</code> and <code>TYPESAFE_API_KEY</code> live in <code>.env</code>. Both files sit under <code>~/Library/Application Support/mechanicus</code> unless <code>MECHANICUS_APPDIR</code> points somewhere else. The <code>/help</code> screen groups 29 slash commands into Draft, Plan and build, Spec lifecycle, Disk and run, and Session.
+        </p>
+      </div>
+    </section>
+    <section id="decisions" class="section">
+      <div class="container">
+        <h2>Three decisions</h2>
+
+        <p>
+          These are the three choices I would defend in a design review.
+        </p>
+
+        <h3>1. The tests have to fail before any code exists.</h3>
+        <p>
+          <code>/spec</code> writes the tests first and hands them to <code>tests_until_red</code> in <code>lifecycle.py</code>. Before pytest runs at all, <code>harness.sniff_test_sources</code> rejects a suite that never imports <code>impl</code> or only makes trivial asserts, and a thinness check catches a check file that duplicates the tests. Then pytest runs against an empty <code>impl.py</code>, and <code>classify_before_code_with_reason</code> sorts the result into red, broken, or pass. Only a red result moves forward. A broken or passing suite goes back to the model for repair up to <code>repair_attempts</code> times (three in the example config), and a spec whose tests never go red is not saved. I was counting on that red run to prove the tests reach into the implementation, because a suite that already passes against an empty module says nothing about the code the model writes next.
+        </p>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/mechanicus-test-first.png"
+            alt="Mechanicus test-first flow: /spec runs the bootstrap guard and pre-checks, writes tests, sniffs them, runs pytest against an empty impl.py until the result is red, then generates code and saves a generation; /adopt runs the length check, the pytest gate with repair_code, uncalled_modules, real_deps_exercised, and a second length check before store.mark_adopted"
+            width="5536"
+            height="13688"
+            loading="lazy">
+          <figcaption>
+            In the upper half of the flowchart, every broken or passing suite loops back through <code>codegen.repair_tests</code> until the repair attempts run out, and the Jev check appears only on the red branch for specs that use adopted modules. The lower half shows <code>/adopt</code> reading the latest generation from <code>.mechanicus/seed.db</code> and checking length before pytest runs, with failed runs sent to <code>codegen.repair_code</code> and each kind of refusal drawn as its own exit.
+          </figcaption>
+        </figure>
+
+        <h3>2. A generation stays a candidate until pytest passes on it.</h3>
+        <p>
+          <code>/spec</code> saves the code as a numbered generation and stops there. <code>/adopt</code> is the only path to adopted code, and it runs the tests and the check against that generation in a temporary directory. When pytest fails, <code>codegen.repair_code</code> gets the failure output and tries again. A passing run is still not enough when the spec uses adopted modules, since <code>uncalled_modules</code> sends code that never calls them back for repair and <code>real_deps_exercised</code> catches tests that fake the dependency. Length gets checked twice, once before the tests run and again after they pass. A generation that is longer than the adopted one for the same behavior is refused, and the adoption test output in the proof section shows the message it prints. The bet was that the model could propose as many generations as it liked, while only a test run I can repeat would get to change what is adopted.
+        </p>
+
+        <h3>3. Each project keeps its own history, and the bootstrap stays hand-written.</h3>
+        <p>
+          The database is <code>.mechanicus/seed.db</code> in whatever directory I start Mechanicus from, so one codebase's specs never show up in another's. It holds a <code>specs</code> table and an <code>artifacts</code> table, and every generation's code, tests, and check are stored as rows with a generation number. That record is what lets <code>/revert &lt;name&gt; &lt;generation&gt;</code> put an earlier generation back and lets <code>/pin</code> freeze a spec. A short list in <code>bootstrap_guard.py</code> (<code>bootstrap</code>, <code>config</code>, <code>store</code>, <code>paths</code>, <code>seed</code>, and a few others) names the modules that <code>/spec</code>, <code>/build</code>, <code>/generate</code>, <code>/import</code>, and <code>/refactor</code> refuse to touch. That mattered because the aim is a tool that can rebuild its own leaves, and recovering from a bad generation depends on a history the model cannot erase and a core it cannot rewrite.
+        </p>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/mechanicus-history.png"
+            alt="Mechanicus history: .mechanicus/seed.db holds a specs table and an artifacts table with numbered generations of code, tests, and check; /pin, /unpin, /revert, and store.save_generation change it, and /generate and /revert write the adopted generation to the startup directory through write_adopted, which the bootstrap guard can refuse"
+            width="7080"
+            height="5276"
+            loading="lazy">
+          <figcaption>
+            Here the database sits on the left with its <code>specs</code> table above the <code>artifacts</code> table, where each generation holds its own code, tests, and check. <code>/pin</code> and <code>/unpin</code> write to the <code>specs</code> row, while <code>/revert</code> goes through <code>store.mark_adopted</code> and, unless <code>--db-only</code> is set, through <code>write_adopted</code> to put <code>name.py</code> and <code>tests/test_name.py</code> in the startup directory. The <code>BOOTSTRAP_NAMES</code> list on the right feeds <code>refuse_bootstrap</code>, which can stop that write along with <code>/spec</code>, <code>/build</code>, <code>/import</code>, and <code>/refactor</code>.
+          </figcaption>
+        </figure>
+
+      </div>
+    </section>
+    <section id="proof" class="section">
+      <div class="container">
+        <h2>Proof</h2>
+        <p>
+          Every run in this section works from a fresh clone without an API key, so you can reproduce it yourself.
+        </p>
+        <p>
+          Installing the package into a venv with <code>pip install -e .</code> and running the repository's suite with <code>.venv/bin/python -m pytest -q -p no:warnings -p no:cacheprovider -rs</code> prints this output.
+        </p>
+        <pre aria-label="Mechanicus repository pytest output">........................................................................ [ 39%]
+........................................................................ [ 79%]
+...........................s..........                                   [100%]
+=========================== short test summary info ============================
+SKIPPED [1] tests/test_swift_package.py:132: swift toolchain not installed
+181 passed, 1 skipped in 5.14s</pre>
+        <p>
+          The one skipped test is the Swift package test, which needs a Swift toolchain on the machine.
+        </p>
+        <p>
+          The adoption tests drive <code>/adopt</code> with stored generations and make no model call. Running <code>.venv/bin/python -m pytest -q -rA -p no:warnings -p no:cacheprovider tests/test_adopt_result.py</code> shows the console output from each gate, including the length refusal.
+        </p>
+        <pre aria-label="Mechanicus adoption test output">......                                                                   [100%]
+==================================== PASSES ====================================
+_________________________ test_adopt_ok_records_result _________________________
+----------------------------- Captured stdout call -----------------------------
+
+Running tests...
+
+Tests passed. Adopted.
+
+_______________________ test_adopt_longer_records_failed _______________________
+----------------------------- Captured stdout call -----------------------------
+Refused. Generation 2 is 2 lines; adopted generation 1 is 1 lines for the same behavior.
+______________________ test_adopt_no_tests_records_failed ______________________
+----------------------------- Captured stdout call -----------------------------
+No generated tests.
+______________________ test_adopt_harness_failure_records ______________________
+----------------------------- Captured stdout call -----------------------------
+
+Running tests...
+Tests failed. Not adopted.
+___________________ test_save_generation_clears_adopt_result ___________________
+----------------------------- Captured stdout call -----------------------------
+
+Running tests...
+
+Tests passed. Adopted.
+
+=========================== short test summary info ============================
+PASSED tests/test_adopt_result.py::test_adopt_ok_records_result
+PASSED tests/test_adopt_result.py::test_adopt_longer_records_failed
+PASSED tests/test_adopt_result.py::test_adopt_no_tests_records_failed
+PASSED tests/test_adopt_result.py::test_adopt_harness_failure_records
+PASSED tests/test_adopt_result.py::test_save_generation_clears_adopt_result
+PASSED tests/test_adopt_result.py::test_show_and_specs_include_adopt
+6 passed in 0.49s</pre>
+        <p>
+          The last run is a command script with no model calls in it, executed with <code>mechanicus -s proof.mech</code> from an empty directory. Neither key was set, and <code>MECHANICUS_APPDIR</code> pointed at a scratch directory. The script <code>proof.mech</code> contains these lines.
+        </p>
+        <pre aria-label="proof.mech script contents"># no model calls in this script
+/specs
+/spec store Keep specs in SQLite
+/show greet
+/cost
+/quit</pre>
+        <p>
+          Running it prints the following session.
+        </p>
+        <pre aria-label="mechanicus -s proof.mech session output">Running script: proof.mech
+
+&gt; /specs
+
+No specifications.
+&gt; /spec store Keep specs in SQLite
+
+'store' is a bootstrap module. It cannot be regenerated.
+&gt; /show greet
+
+Not found.
+&gt; /cost
+
+Session estimate $0.000
+0 OpenAI turns
+&gt; /quit
+
+Session estimate $0.000
+Log file: /tmp/mech-app/logs/20261122T135952-6017.log</pre>
+        <p>
+          The bootstrap guard refuses the <code>/spec store</code> line before any model call, and <code>/cost</code> confirms that the session made 0 OpenAI turns. After the run, the empty directory contains <code>.mechanicus/seed.db</code>.
+        </p>
+
+        <figure class="proof-figure">
+          <img
+            src="../assets/mechanicus-runtime.png"
+            alt="Mechanicus runtime architecture: Entry and script runner into slash-command dispatch, the /spec path with a red pytest run before code generation, the /adopt pytest gate, and .mechanicus/seed.db"
+            width="4736"
+            height="10672"
+            loading="lazy">
+          <figcaption>
+            The runtime map starts at the <code>mechanicus</code> entry point, where the interactive REPL and the script runner both load the app directory and feed <code>repl.handle_line</code>. From there <code>/spec</code> passes the bootstrap guard and moves through test writing, the weak-test sniff, the red pytest run, the optional Jev check, and code generation. <code>/adopt</code> checks length, runs the pytest gate and the dependency checks, and checks length again before <code>store.mark_adopted</code> records the generation. Dotted lines mark the calls to the OpenAI Responses API, and <code>/generate</code> copies adopted code and tests from <code>.mechanicus/seed.db</code> into the startup directory.
+          </figcaption>
+        </figure>
+      </div>
+    </section>
+    <section id="why" class="section">
+      <div class="container">
+        <h2>Why I built it this way</h2>
+        <p>
+          Every gate in Mechanicus exists so the model can be wrong without the project paying for it.
+        </p>
+        <p>
+          The tests go red before any code exists, and pytest decides what gets adopted. The database keeps every generation, so a bad one can be reverted, and the bootstrap modules stay out of the model's reach. If a model is going to write code for me, I want it to write the tests first and then lose every argument with pytest.
+        </p>
+      </div>
+    </section>
+    <section id="links" class="section">
+      <div class="container">
+        <p>
+          The code lives at <a href="https://github.com/rdegraci/mechanicus" target="_blank" rel="noopener noreferrer">github.com/rdegraci/mechanicus</a>, and you can go <a href="/">back home</a> from here.
+        </p>
+        <div class="d-flex flex-wrap gap-2 mt-4">
+          <a class="btn btn-accent" href="https://github.com/rdegraci/mechanicus" target="_blank" rel="noopener noreferrer">View on GitHub</a>
+          <a class="btn btn-accent" href="/">Back home</a>
+        </div>
+      </div>
+    </section>
+  </main>
+  <footer>
+    <div class="container d-flex flex-column flex-md-row gap-2 gap-md-4 justify-content-between">
+      <span>Rodney Degracia, Orlando, FL, USA</span>
+      <span>
+        <a href="mailto:rdegraci@gmail.com">rdegraci@gmail.com</a>
+      </span>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+    crossorigin="anonymous"></script>
+  <script data-goatcounter="https://rdegraci-gh-io.goatcounter.com/count"
+          async src="https://gc.zgo.at/count.js"></script>
+</body>
+</html>
